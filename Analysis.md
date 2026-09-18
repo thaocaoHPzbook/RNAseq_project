@@ -1,20 +1,20 @@
 Table of Content
-# Preparation
-## Conda environment and R
-## Get the public RNA-seq data from SRA
+# 1.Preparation
+## 1.1.Conda environment and R
+## 1.2.Get the public RNA-seq data from SRA
 
-# Preprocessing of RNA-seq data 
-## Quality control of RNA-seq data
-## Read mapping/pseudomapping and quantification
-### Read mapping with STAR and data quantification
-### Read pseudomapping with kallisto and data quantification
-## Cross-species comparison
+# 2.Preprocessing of RNA-seq data 
+## 2.1.Quality control of RNA-seq data
+## 2.2.Read mapping/pseudomapping and quantification
+### 2.2.1.Read mapping with STAR and data quantification
+### 2.2.2.Read pseudomapping with kallisto and data quantification
+## 2.3.Cross-species comparison
 
-# Analyze and compare RNA-seq data
-## Import data to R
-## Comparison of transcriptomic profiles across samples
-## Differential expression analysis - DESeq2
-## Grouping of the identified DEGs
-## Making sense of the genes
-## Other analysis
+# 3.Analyze and compare RNA-seq data
+## 3.1.Import data to R
+## 3.2.Comparison of transcriptomic profiles across samples
+## 3.3.Differential expression analysis - DESeq2
+## 3.4.Grouping of the identified DEGs
+## 3.5.Making sense of the genes
+## 3.6Other analysis
 
