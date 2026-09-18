@@ -341,4 +341,63 @@ For 100-bp reads:
 ```text
 sjdbOverhang = 99
 ```
+## Mapping with STAR
 
+The trimmed RNA-seq reads were aligned to the **GENCODE v50 GRCh38 primary assembly** using the STAR genome index generated in the previous step.
+
+Create a directory for the STAR mapping results:
+
+```bash
+mkdir -p mapping_count
+```
+
+Map all trimmed FASTQ files:
+
+```bash
+for file in trimmed/*.fastq.gz; do
+
+    sample=$(basename "$file" .fastq.gz)
+    sample=${sample%_trimmed}
+
+    echo "======================================"
+    echo "Mapping: $sample"
+    echo "Input:   $file"
+    echo "======================================"
+
+    mkdir -p "mapping_count/$sample"
+
+    STAR \
+        --genomeDir genome/star-index \
+        --runThreadN 16 \
+        --readFilesIn "$file" \
+        --readFilesCommand zcat \
+        --quantMode GeneCounts \
+        --outSAMtype BAM SortedByCoordinate \
+        --outFileNamePrefix "mapping_count/$sample/"
+
+done
+```
+
+Here:
+
+- `--genomeDir genome/star-index` uses the STAR index generated from the **GENCODE v50 GRCh38 primary assembly**.
+- `--readFilesCommand zcat` allows STAR to read compressed `.fastq.gz` files directly.
+- `--quantMode GeneCounts` generates gene-level read counts based on the annotation incorporated during genome indexing.
+- `--outSAMtype BAM SortedByCoordinate` generates coordinate-sorted BAM files.
+- Each sample is stored in a separate directory under:
+
+```text
+mapping_count/
+```
+
+For each sample, STAR will generate files such as:
+
+```text
+mapping_count/SRRxxxxxxx/
+├── Aligned.sortedByCoord.out.bam
+├── Log.final.out
+├── Log.out
+├── Log.progress.out
+├── ReadsPerGene.out.tab
+└── SJ.out.tab
+```
