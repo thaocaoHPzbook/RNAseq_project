@@ -215,3 +215,5 @@ qc/trimmed_multiqc/multiqc_report.html
 ```
 
 Compare this report with the initial raw-read QC report to verify the improvement in **Adapter Content** and **Per base sequence quality** before proceeding to read mapping.
+<img width="1823" height="1094" alt="image" src="https://github.com/user-attachments/assets/2a6f1fdf-e34a-4d55-9659-e190d59cec25" />
+
