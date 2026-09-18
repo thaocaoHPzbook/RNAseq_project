@@ -154,3 +154,64 @@ Meanwhile, the sections that I would suggest to pay attention to for RNA-seq dat
 For the example shown in the screenshot above, we don't need to do anything as it looks all good.
 
 IMPORTANT NOTE: It is not always necessary to do anything here even if problems were found, especially those related to base quality. For instance, many up-to-date software being used later for read mapping (e.g. STAR) has implemented a soft trimming mechanism to deal with low-quality bases at the end of a read.
+
+
+## Adapter trimming
+
+If adapter contamination is detected during the initial FastQC/MultiQC assessment, remove the adapter sequences before read alignment and quantification.
+
+Create a directory for the trimmed reads:
+
+```bash
+cd /media/admin1/DATA/RNAseq_project
+
+mkdir -p trimmed
+```
+
+Trim the Illumina adapter sequence using **Cutadapt**:
+
+```bash
+for file in rawdata/*.fastq; do
+    sample=$(basename "$file" .fastq)
+
+    echo "Trimming: $sample"
+
+    cutadapt \
+        --adapter=AGATCGGAAGAG \
+        --minimum-length=25 \
+        -j 4 \
+        -o "trimmed/${sample}_trimmed.fastq.gz" \
+        "$file"
+
+done
+```
+
+Here:
+
+- `--adapter=AGATCGGAAGAG` removes the Illumina adapter sequence from the 3' end of reads.
+- `--minimum-length=25` removes reads shorter than 25 bp after trimming.
+- `-j 4` uses 4 CPU threads.
+- The trimmed reads are compressed automatically and stored in folder **trimmed/SRRxxxxxxx_trimmed.fastq.gz**
+
+### Quality control after trimming
+
+After adapter trimming, run FastQC again to confirm that adapter contamination has been removed and that the remaining reads retain acceptable sequence quality.
+
+```bash
+mkdir -p qc/trimmed_fastqc qc/trimmed_multiqc
+
+fastqc trimmed/*.fastq.gz \
+    -o qc/trimmed_fastqc \
+    -t 16
+
+multiqc qc/trimmed_fastqc \
+    -o qc/trimmed_multiqc
+```
+
+The post-trimming MultiQC report can be found at:
+
+```text
+qc/trimmed_multiqc/multiqc_report.html
+```
+
+Compare this report with the initial raw-read QC report to verify the improvement in **Adapter Content** and **Per base sequence quality** before proceeding to read mapping.
