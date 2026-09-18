@@ -60,6 +60,8 @@ conda create -n rnaseq -c conda-forge -c bioconda \
     r-base \
     multiqc \
     -y
+```
+
 ## Get the public RNA-seq data from SRA
 The dataset contains **25 RNA-seq samples** obtained from the NCBI Sequence Read Archive (SRA).  
 The corresponding SRA run accession numbers are stored in:
