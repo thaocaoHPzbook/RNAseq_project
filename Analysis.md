@@ -401,3 +401,143 @@ mapping_count/SRRxxxxxxx/
 ├── ReadsPerGene.out.tab
 └── SJ.out.tab
 ```
+
+
+## Brief introduction to SAM/BAM format
+
+**SAM (Sequence Alignment/Map)** is a text-based format used to store sequencing reads aligned to a reference genome.  
+**BAM (Binary Alignment/Map)** contains the same information as SAM but in a compressed binary format, requiring less storage space.
+
+A SAM/BAM file contains two main sections:
+
+1. **Header section** – contains metadata such as the reference genome, sorting order, and file format version.
+2. **Alignment section** – contains the alignment information for individual sequencing reads.
+
+Each alignment record contains **11 mandatory fields**:
+
+| Col | Field | Type | Description |
+|---|---|---|---|
+| 1 | QNAME | String | Query template name |
+| 2 | FLAG | Integer | Bitwise alignment flag |
+| 3 | RNAME | String | Reference sequence name |
+| 4 | POS | Integer | 1-based leftmost mapping position |
+| 5 | MAPQ | Integer | Mapping quality |
+| 6 | CIGAR | String | CIGAR alignment string |
+| 7 | RNEXT | String | Reference name of the mate/next read |
+| 8 | PNEXT | Integer | Position of the mate/next read |
+| 9 | TLEN | Integer | Observed template length |
+| 10 | SEQ | String | Read sequence |
+| 11 | QUAL | String | Phred-scaled base quality |
+
+Additional optional fields may appear after these 11 mandatory fields.
+
+### View BAM files with Samtools
+
+BAM files are binary files and therefore cannot be read directly with a normal text editor.  
+Use **Samtools** to inspect and manipulate BAM files.
+
+For example:
+
+```bash
+samtools view mapping_count/SRRxxxxxxx/Aligned.sortedByCoord.out.bam | head -5
+```
+
+> **Note:** Although SAM files are plain text and can technically be opened or edited using a text editor, manual editing is not recommended because it may break the required SAM format. Samtools should preferably be used for viewing and manipulating both SAM and BAM files.
+
+### Common optional alignment fields
+
+STAR may include additional fields in each alignment record, such as:
+
+- `NH` – number of loci to which the read maps.
+- `HI` – alignment index for multi-mapped reads.
+- `AS` – alignment score.
+- `nM` – number of mismatches between the read and the reference sequence.
+
+Two particularly important fields for interpreting alignments are **FLAG** and **CIGAR**.
+
+### FLAG
+
+The `FLAG` field stores multiple alignment properties as a bitwise integer.
+
+Common FLAG values include:
+
+| Integer | Meaning |
+|---:|---|
+| 1 | Read is paired |
+| 2 | Read is mapped in a proper pair |
+| 4 | Read is unmapped |
+| 8 | Mate is unmapped |
+| 16 | Read is mapped to the reverse strand |
+| 32 | Mate is mapped to the reverse strand |
+| 64 | First read in a pair |
+| 128 | Second read in a pair |
+| 256 | Secondary alignment |
+| 512 | Alignment fails quality checks |
+| 1024 | PCR or optical duplicate |
+| 2048 | Supplementary alignment |
+
+Because FLAG is bitwise encoded, a single integer can represent several properties simultaneously.
+
+### CIGAR
+
+The **CIGAR string** describes how a read is aligned to the reference genome.
+
+It consists of combinations of:
+
+```text
+<number><operation>
+```
+
+For example:
+
+```text
+100M
+1S99M
+33M1685N66M1S
+```
+
+Common CIGAR operations include:
+
+| Operation | Description | Consumes read | Consumes reference |
+|---|---|---|---|
+| `M` | Alignment match or mismatch | Yes | Yes |
+| `I` | Insertion relative to reference | Yes | No |
+| `D` | Deletion relative to reference | No | Yes |
+| `N` | Skipped region in reference | No | Yes |
+| `S` | Soft clipping | Yes | No |
+| `H` | Hard clipping | No | No |
+| `P` | Padding | No | No |
+| `=` | Sequence match | Yes | Yes |
+| `X` | Sequence mismatch | Yes | Yes |
+
+For RNA-seq, the most commonly encountered operations are:
+
+```text
+M, I, D, N, S
+```
+
+For example:
+
+```text
+1S99M
+```
+
+means that:
+
+- the first base is **soft-clipped**;
+- the remaining 99 bases are aligned to the reference.
+
+A splice-junction alignment may look like:
+
+```text
+33M1685N66M1S
+```
+
+which means:
+
+- 33 bases align to the reference;
+- 1685 bases are skipped on the reference, typically representing an intron;
+- another 66 bases align;
+- the final base is soft-clipped.
+
+The `N` operation is particularly important in RNA-seq because it allows splice-aware aligners such as STAR to represent reads spanning exon-exon junctions.
