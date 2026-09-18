@@ -27,14 +27,17 @@ Now you have access to the server/cluster and hopefully also know the basics of 
 
 Below is a summary of the main software that will be introduced and/or used throughout the workflow.
 
-Software	Link	Function	Compatible OS
-SRA Toolkit	GitHub	Retrieve sequencing data from the NCBI Sequence Read Archive (SRA)	UNIX/Unix-like, Windows
-SRA Run Selector	NCBI SRA Run Selector	Interactive filtering and selection of SRA entries to obtain metadata and accession numbers	Online
-FastQC	FastQC	Quality control of FASTQ files	UNIX/Unix-like, Windows
-Cutadapt	Cutadapt Documentation	Find and remove unwanted sequences, such as adapters, from sequencing reads	UNIX/Unix-like, Windows
-STAR	GitHub	RNA-seq read alignment to a reference genome	UNIX/Unix-like
-kallisto	kallisto	RNA-seq transcript-level pseudoalignment and quantification	UNIX/Unix-like
-Samtools	Samtools	View, process, and manipulate SAM/BAM files	UNIX/Unix-like
-RSEM	RSEM	Gene and transcript expression quantification	UNIX/Unix-like
-R	R Project	Programming language and statistical computing environment widely used for downstream analysis	UNIX/Unix-like, Windows
-DESeq2	Bioconductor	Differential gene expression analysis	R package
+## Software
+
+| Software | Link | Function | Compatible OS |
+|---|---|---|---|
+| SRA-Toolkit | https://github.com/ncbi/sra-tools/wiki | Retrieve data from SRA | UNIX/Unix-like, Win |
+| SRA Run Selector | https://www.ncbi.nlm.nih.gov/Traces/study/ | Interactive filter and selection of SRA entries to obtain their metadata and accessions | Online |
+| FastQC | https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ | Quality control for the FASTQ files | UNIX/Unix-like, Win |
+| Cutadapt | https://cutadapt.readthedocs.io/en/stable/index.html | Find and remove unwanted sequence from sequencing reads | UNIX/Unix-like, Win |
+| STAR | https://github.com/alexdobin/STAR | RNA-seq read mapping | UNIX/Unix-like |
+| kallisto | https://pachterlab.github.io/kallisto/ | RNA-seq read pseudomapping | UNIX/Unix-like |
+| Samtools | http://www.htslib.org/ | View and manipulate SAM/BAM files | UNIX/Unix-like |
+| RSEM | https://deweylab.github.io/RSEM/ | Expression quantification | UNIX/Unix-like |
+| R | https://www.r-project.org/ | Commonly used programming language and analytical framework for statistics | UNIX/Unix-like, Win |
+| DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html | Differential expression analysis | R package |
