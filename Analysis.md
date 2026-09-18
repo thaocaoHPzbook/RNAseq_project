@@ -390,7 +390,7 @@ Here:
 mapping_count/
 ```
 
-For each sample, STAR will generate files such as:
+For each sample, STAR will generate files including:
 
 ```text
 mapping_count/SRRxxxxxxx/
