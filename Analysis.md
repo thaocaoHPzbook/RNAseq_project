@@ -1,4 +1,4 @@
-<img width="1891" height="1112" alt="image" src="https://github.com/user-attachments/assets/4225334d-7b65-4c3c-b43f-0ea0ef2510c8" />Table of Content
+Table of Content
 # 1.Preparation
 ## 1.1.Software setup for RNA-seq preprocessing and analysis
 ## 1.2.Get the public RNA-seq data from SRA
