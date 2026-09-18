@@ -1,4 +1,4 @@
-Table of Content
+<img width="1891" height="1112" alt="image" src="https://github.com/user-attachments/assets/4225334d-7b65-4c3c-b43f-0ea0ef2510c8" />Table of Content
 # 1.Preparation
 ## 1.1.Software setup for RNA-seq preprocessing and analysis
 ## 1.2.Get the public RNA-seq data from SRA
@@ -145,5 +145,16 @@ At this stage, the main QC metrics to inspect are:
 - **GC content**
 <img width="1891" height="1112" alt="image" src="https://github.com/user-attachments/assets/772a06e6-634c-4bfa-ab15-dd00e24fc88b" />
 
+Other QC metrics can also be examined in more detail in the MultiQC report **qc/multiqc/multiqc_report.html**
 
-Other QC metrics can also be examined in more detail in the MultiQC report ** qc/multiqc/multiqc_report.html**
+It is important to mention that some of the grades are made assuming the data to be whole-genome DNA sequencing. For instance, the "Per sequence GC content" compares the distribution of G/C bases proportion per read to a theoretical distribution derived from the whole genome, which is expected to be different from the GC content of transcriptome. From my personal experience, the "Per base sequence content" and "Per sequence GC content" are the two sections that easily get the warning for failed grade for RNA-seq data, but can be ignored if other sections are fine. In addition, the "Sequence Duplication Levels" is another section that could give out warning of RNA-seq data, while it may or may not be a problem that needs to be solved later.
+
+Meanwhile, the sections that I would suggest to pay attention to for RNA-seq data include "Per base sequence quality", "Sequence Duplication Levels", "Overrepresented sequences" and "Adapter Content". They represent potential We will need to try to fix the problem if they get a failed grade:
+
+    If any read locus shows low quality (e.g. median <20 or even <10) in the "Per base sequence quality" section, especially at the two ends, we should try to trim them if the low-quality part is large (>10 bases), either by all reads removing the same number of bases or different number per read based on the quality scores.
+    Since different transcripts have very different abundance, to make sure that very lowly expressed transcripts are also detected, it is possible that the highly expressed transcripts are over-amplified and/or over-sequenced, resulting in warning of "Sequence Duplication Levels". In this case, a de-duplication step may be wanted to collapse the identical reads into one.
+    For standard mRNA-seq data with oligoT enrichment, problems of "Overrepresented sequences" and "Adapter Content" often come together and represent the adapter ligation issue mentioned above. We can try to cut the adapter sequences from reads later.
+
+For the example shown in the screenshot above, we don't need to do anything as it looks all good.
+
+IMPORTANT NOTE: It is not always necessary to do anything here even if problems were found, especially those related to base quality. For instance, many up-to-date software being used later for read mapping (e.g. STAR) has implemented a soft trimming mechanism to deal with low-quality bases at the end of a read.
