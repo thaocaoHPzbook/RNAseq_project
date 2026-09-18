@@ -720,3 +720,8 @@ qc/rseqc_multiqc/multiqc_report.html
 ```
 
 This report provides a convenient overview of RNA-seq–specific QC metrics across all samples and helps identify potential outliers or systematic biases.
+<img width="1804" height="1027" alt="image" src="https://github.com/user-attachments/assets/b0503888-f43c-42be-9c2b-727b74179a20" />
+![Uploading image.png…]()
+
+
+
