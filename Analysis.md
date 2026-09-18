@@ -720,8 +720,17 @@ qc/rseqc_multiqc/multiqc_report.html
 ```
 
 This report provides a convenient overview of RNA-seq–specific QC metrics across all samples and helps identify potential outliers or systematic biases.
+<img width="1787" height="1135" alt="image" src="https://github.com/user-attachments/assets/8fb66a52-7168-43fa-93e8-795eee36ea42" />
 <img width="1804" height="1027" alt="image" src="https://github.com/user-attachments/assets/b0503888-f43c-42be-9c2b-727b74179a20" />
-![Uploading image.png…]()
+<img width="1808" height="1109" alt="image" src="https://github.com/user-attachments/assets/32f3e541-672f-4e8f-9965-6e3f5b6a6b39" />
+### Interpretation of RSeQC results
 
+The RSeQC results indicated that the libraries were predominantly **unstranded**, with approximately equal proportions of sense and antisense reads across samples. Therefore, downstream expression quantification should be performed using an unstranded configuration.
+
+Read distribution showed that most mapped reads were located within annotated exonic regions (CDS and UTRs), while only small proportions mapped to intronic or intergenic regions, consistent with a typical mRNA-seq dataset.
+
+Gene body coverage profiles were generally similar across samples, although a moderate **3' coverage bias** was observed. One sample showed a stronger deviation from the overall coverage pattern and should be examined together with its FastQC and STAR mapping statistics.
+
+Overall, no major RNA-seq–specific QC problem was identified that would prevent downstream expression analysis.
 
 
