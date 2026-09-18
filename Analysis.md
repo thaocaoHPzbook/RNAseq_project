@@ -734,3 +734,21 @@ Gene body coverage profiles were generally similar across samples, although a mo
 Overall, no major RNA-seq–specific QC problem was identified that would prevent downstream expression analysis.
 
 
+### Optional: Gene biotype composition
+
+As an additional RNA-seq quality assessment, gene counts can also be summarized according to **GENCODE gene biotypes**, such as:
+
+- `protein_coding`
+- `lncRNA`
+- `pseudogene`
+- `rRNA`
+- `snRNA`
+- `snoRNA`
+
+This analysis is not required for the main RNA-seq workflow, but it can provide additional information about the RNA composition of the sequencing library and help identify unexpected enrichment of particular RNA classes.
+
+Its interpretation depends on the sample type and library preparation method. For example, whole-blood RNA-seq may additionally require examination of highly abundant globin transcripts, whereas total-RNA libraries may contain larger proportions of non-coding RNAs.
+
+Therefore, biotype composition is used here mainly as an **optional library-characterization and QC step** rather than as a mandatory preprocessing step.
+
+
