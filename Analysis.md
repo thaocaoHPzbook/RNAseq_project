@@ -41,3 +41,22 @@ Below is a summary of the main software that will be introduced and/or used thro
 | RSEM | https://deweylab.github.io/RSEM/ | Expression quantification | UNIX/Unix-like |
 | R | https://www.r-project.org/ | Commonly used programming language and analytical framework for statistics | UNIX/Unix-like, Win |
 | DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html | Differential expression analysis | R package |
+
+
+## RNA-seq Environment Setup
+
+Create a dedicated Conda environment for RNA-seq preprocessing and analysis.
+
+```bash
+# Create environment
+conda create -n rnaseq -c conda-forge -c bioconda \
+    sra-tools \
+    fastqc \
+    cutadapt \
+    star \
+    kallisto \
+    samtools \
+    rsem \
+    r-base \
+    multiqc \
+    -y
