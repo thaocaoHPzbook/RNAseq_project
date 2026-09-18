@@ -6,8 +6,8 @@ Table of Content
 # 2.Preprocessing of RNA-seq data 
 ## 2.1.Quality control of RNA-seq data
 ## 2.2.Read mapping/pseudomapping and quantification
-### 2.2.1.Read mapping with STAR and data quantification
-### 2.2.2.Read pseudomapping with kallisto and data quantification
+## 2.2.1.Read mapping with STAR and data quantification
+## 2.2.2.Read pseudomapping with kallisto and data quantification
 ## 2.3.Cross-species comparison
 
 # 3.Analyze and compare RNA-seq data
