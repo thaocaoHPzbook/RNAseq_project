@@ -96,11 +96,7 @@ while read SRR; do
 done < SRR_Acc_List.txt
 
 wait
-```
 
-Compress all downloaded FASTQ files:
-
-```bash
 gzip rawdata/*.fastq
 ```
 
