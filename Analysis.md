@@ -1011,15 +1011,13 @@ abundance.tsv
 which contains transcript-level abundance estimates.
 
 ### Example kallisto output
-
-```text
-| target_id                                                                                                                                          | length | eff_length | est_counts | tpm     |
-| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | ---------- | ------- |
-| ENST00000456328.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000362751.1|DDX11L1-202|DDX11L1|1657|processed_transcript|               | 1657   | 1258       | 0          | 0       |
-| ENST00000450305.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000002844.2|DDX11L1-201|DDX11L1|632|transcribed_unprocessed_pseudogene| | 632    | 233        | 0          | 0       |
-| ENST00000488147.1|ENSG00000227232.5|OTTHUMG00000000958.1|OTTHUMT00000002839.1|WASH7P-201|WASH7P|1351|unprocessed_pseudogene|               | 1351   | 952        | 11.4439    | 9.70548 |
-| ENST00000619216.1|ENSG00000278267.1|-|-|MIR6859-1-201|MIR6859-1|68|miRNA|                                                                   | 68     | 5.21251    | 0          | 0       |
-| ENST00000473358.1|ENSG00000243485.5|OTTHUMG00000000959.2|OTTHUMT00000002840.1|MIR1302-2HG-202|MIR1302-2HG|712|lncRNA|                       | 712    | 313        | 0          | 0       |
+| target_id | length | eff_length | est_counts | tpm |
+|---|---:|---:|---:|---:|
+| ENST00000456328.2\|ENSG00000223972.5\|OTTHUMG00000000961.2\|OTTHUMT00000362751.1\|DDX11L1-202\|DDX11L1\|1657\|processed_transcript\| | 1657 | 1258 | 0 | 0 |
+| ENST00000450305.2\|ENSG00000223972.5\|OTTHUMG00000000961.2\|OTTHUMT00000002844.2\|DDX11L1-201\|DDX11L1\|632\|transcribed_unprocessed_pseudogene\| | 632 | 233 | 0 | 0 |
+| ENST00000488147.1\|ENSG00000227232.5\|OTTHUMG00000000958.1\|OTTHUMT00000002839.1\|WASH7P-201\|WASH7P\|1351\|unprocessed_pseudogene\| | 1351 | 952 | 11.4439 | 9.70548 |
+| ENST00000619216.1\|ENSG00000278267.1\|-\|-\|MIR6859-1-201\|MIR6859-1\|68\|miRNA\| | 68 | 5.21251 | 0 | 0 |
+| ENST00000473358.1\|ENSG00000243485.5\|OTTHUMG00000000959.2\|OTTHUMT00000002840.1\|MIR1302-2HG-202\|MIR1302-2HG\|712\|lncRNA\| | 712 | 313 | 0 | 0 |
 ```
 
 Unlike RSEM, kallisto directly reports expression estimates at the **transcript level** rather than providing a separate gene-level result table.
