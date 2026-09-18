@@ -257,3 +257,44 @@ After the seed search is done, STAR applies the second step, which is clustering
 
 More details information are available in the STAR paper (technical details in its Supplementary Materials).
 
+
+### Download the reference genome
+
+Before read alignment, download the reference genome sequence and prepare it for STAR indexing.
+
+Create a directory for the genome files:
+
+```bash
+mkdir -p genome
+cd genome
+```
+
+Download the human reference genome (hg38) from the UCSC Genome Browser:
+
+```bash
+wget https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
+```
+
+STAR requires an uncompressed FASTA file, so decompress the genome sequence:
+
+```bash
+gzip -d hg38.fa.gz
+```
+
+The resulting reference genome file will be:
+
+```text
+hg38.fa
+```
+
+### Reference genome sources
+
+The UCSC Genome Browser is not the only source for reference genome sequences. Other commonly used databases include:
+
+- [Ensembl](https://www.ensembl.org/) – provides genome sequences, gene annotations, and comparative genomics data for many species.
+- [GENCODE](https://www.gencodegenes.org/) – provides highly curated genome annotations and corresponding reference sequences for human and mouse.
+- [FlyBase](https://flybase.org/) – provides genomic and genetic resources for *Drosophila* species.
+- [WormBase](https://wormbase.org/) – provides genome sequences, annotations, and genetic information for *Caenorhabditis elegans* and related nematodes.
+
+> **Note:** The reference genome FASTA and gene annotation file used later should come from compatible genome builds. For example, if using hg38/GRCh38, the corresponding annotation should also be based on GRCh38.
+
