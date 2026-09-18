@@ -18,3 +18,6 @@ Table of Content
 ## 3.5.Making sense of the genes
 ## 3.6Other analysis
 
+
+
+# 1.Preparation
