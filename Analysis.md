@@ -60,6 +60,8 @@ conda create -n rnaseq -c conda-forge -c bioconda \
     r-base \
     multiqc \
     -y
+
+conda activate rnaseq
 ```
 
 ## 1.2. Get the public RNA-seq data from SRA
@@ -315,15 +317,10 @@ The UCSC Genome Browser is not the only source for reference genome sequences. O
 
 ### Build the STAR genome index
 
-Create a directory for the STAR genome index:
+Create a directory for the STAR genome index, and Generate the STAR index:
 
 ```bash
 mkdir -p star-index
-```
-
-Generate the STAR index:
-
-```bash
 STAR \
     --runThreadN 16 \
     --runMode genomeGenerate \
