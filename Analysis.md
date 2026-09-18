@@ -104,7 +104,5 @@ Compress all downloaded FASTQ files:
 gzip rawdata/*.fastq
 ```
 
-The final compressed FASTQ files will be stored in **rawdata** folder
-```
-
+The final compressed FASTQ files will be stored in **rawdata** folder.
 
