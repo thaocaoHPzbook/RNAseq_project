@@ -751,4 +751,147 @@ Its interpretation depends on the sample type and library preparation method. Fo
 
 Therefore, biotype composition is used here mainly as an **optional library-characterization and QC step** rather than as a mandatory preprocessing step.
 
+## Gene expression quantification with RSEM
+
+Read alignment is an intermediate step in RNA-seq analysis. For downstream analyses, the main objective is usually to estimate the expression level of genes and transcripts.
+
+Raw read counts are affected by several factors, including:
+
+- sequencing depth;
+- transcript abundance;
+- transcript length;
+- alternative transcript isoforms.
+
+**RSEM (RNA-Seq by Expectation-Maximization)** estimates gene- and transcript-level expression using an expectation-maximization (EM) algorithm. This allows reads that may originate from multiple transcript isoforms to be probabilistically assigned and enables estimation of:
+
+- expected counts;
+- effective transcript/gene length;
+- TPM;
+- FPKM.
+
+In this workflow, RSEM uses **STAR** internally for read alignment.
+
+> **Note:** The RSEM reference should be generated using the same reference genome and annotation used throughout the workflow. Here, the **GENCODE v50 GRCh38 primary assembly genome and annotation** are used.
+
+---
+
+### Build the RSEM reference
+
+Create a directory for the RSEM reference:
+
+```bash
+mkdir -p genome/rsem_ref
+```
+
+Prepare the RSEM reference using the GENCODE v50 annotation and GRCh38 primary assembly:
+
+```bash
+rsem-prepare-reference \
+    --gtf genome/gencode.v50.primary_assembly.annotation.gtf \
+    --star \
+    -p 16 \
+    genome/GRCh38.primary_assembly.genome.fa \
+    genome/rsem_ref/GRCh38
+```
+
+Here:
+
+- `--gtf` specifies the GENCODE gene annotation.
+- `--star` generates the STAR index required for RSEM to use STAR as the aligner.
+- `-p 16` uses 16 CPU threads.
+- `genome/GRCh38.primary_assembly.genome.fa` is the reference genome.
+- `genome/rsem_ref/GRCh38` is the prefix of the generated RSEM reference.
+
+---
+
+### Run RSEM for all samples
+
+Create an output directory:
+
+```bash
+mkdir -p rsem
+```
+
+Run RSEM on all trimmed RNA-seq samples:
+
+```bash
+for file in trimmed/*.fastq.gz; do
+
+    sample=$(basename "$file" .fastq.gz)
+    sample=${sample%_trimmed}
+
+    echo "======================================"
+    echo "RSEM:  $sample"
+    echo "Input: $file"
+    echo "======================================"
+
+    mkdir -p "rsem/$sample"
+
+    rsem-calculate-expression \
+        --star \
+        --star-gzipped-read-file \
+        --append-names \
+        --no-bam-output \
+        -p 16 \
+        "$file" \
+        genome/rsem_ref/GRCh38 \
+        "rsem/$sample/sample"
+
+done
+```
+
+The main options are:
+
+- `--star` – uses STAR for read alignment.
+- `--star-gzipped-read-file` – allows STAR to directly read compressed `.fastq.gz` files.
+- `--append-names` – appends gene or transcript names to the output when annotation information is available.
+- `--no-bam-output` – avoids retaining BAM alignment files generated internally by RSEM, reducing storage usage.
+- `-p 16` – uses 16 CPU threads.
+
+> **Note:** This workflow assumes **single-end RNA-seq data**. For paired-end data, `--paired-end` must be specified and both read files must be provided.
+
+---
+
+### RSEM output
+
+For each sample, RSEM generates gene- and transcript-level expression estimates:
+
+```text
+rsem/
+└── SRRxxxxxxx/
+    ├── sample.genes.results
+    ├── sample.isoforms.results
+    └── ...
+```
+
+The gene-level result file can be inspected using:
+
+```bash
+head rsem/SRRxxxxxxx/sample.genes.results
+```
+
+A typical `sample.genes.results` file contains:
+
+```text
+gene_id
+transcript_id(s)
+length
+effective_length
+expected_count
+TPM
+FPKM
+```
+
+The main quantities are:
+
+- `expected_count` – estimated number of reads/fragments assigned to the gene.
+- `length` – estimated gene/transcript length.
+- `effective_length` – effective length used by RSEM during abundance estimation.
+- `TPM` – Transcripts Per Million.
+- `FPKM` – Fragments Per Kilobase Million.
+
+RSEM estimates transcript abundance first and then summarizes transcript isoforms to obtain gene-level expression estimates.
+> **Important:** TPM and FPKM should not be used directly as input for differential expression analysis with DESeq2. For differential expression, count-based expression estimates should be used instead. RSEM results can be imported into DESeq2 using tools such as `tximport`, while TPM can be used for expression visualization and descriptive comparisons.
+
+
 
