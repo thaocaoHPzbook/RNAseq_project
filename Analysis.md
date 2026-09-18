@@ -62,7 +62,7 @@ conda create -n rnaseq -c conda-forge -c bioconda \
     -y
 ```
 
-## Get the public RNA-seq data from SRA
+## 1.2. Get the public RNA-seq data from SRA
 The dataset contains **25 RNA-seq samples** obtained from the NCBI Sequence Read Archive (SRA).  
 The corresponding SRA run accession numbers are stored in **SRR_Acc_List.txt**.
 
@@ -104,5 +104,39 @@ Compress all downloaded FASTQ files:
 gzip rawdata/*.fastq
 ```
 
-The final compressed FASTQ files will be stored in **rawdata** folder.
+The final compressed FASTQ files will be stored in **rawdata/** folder.
+
+
+# 2. Preprocessing of RNA-seq data
+## 2.1. Quality control of RNA-seq data
+Before processing the RNA-seq data, the quality of the raw FASTQ files should be assessed.
+
+### Run FastQC
+
+Create directories for FastQC and MultiQC results:
+
+```bash
+mkdir -p qc/fastqc qc/multiqc
+```
+
+Run **FastQC** on all raw FASTQ files:
+
+```bash
+fastqc rawdata/*.fastq \
+    -o qc/fastqc \
+    -t 16
+```
+
+### Summarize QC results with MultiQC
+
+Combine all FastQC reports into a single summary report:
+
+```bash
+multiqc qc/fastqc \
+    -o qc/multiqc
+```
+
+The FastQC reports will be stored in **qc/fastqc/_report.htlm**
+
+and the combined MultiQC report will be stored in **qc/multiqc/multiqc_report.html**
 
