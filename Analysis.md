@@ -22,4 +22,4 @@ Table of Content
 
 # 1.Preparation
 ## 1.1.Conda environment and R
-- 1.1.2. Install the required tools with the help from conda
+### 1.1.2. Install the required tools with the help from conda
