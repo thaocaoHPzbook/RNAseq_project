@@ -60,3 +60,58 @@ conda create -n rnaseq -c conda-forge -c bioconda \
     r-base \
     multiqc \
     -y
+## Get the public RNA-seq data from SRA
+The dataset contains **25 RNA-seq samples** obtained from the NCBI Sequence Read Archive (SRA).  
+The corresponding SRA run accession numbers are stored in:
+
+```text
+SRR_Acc_List.txt
+### Download the raw sequencing data in FASTQ format via SRA Toolkit
+
+Create a directory for the raw FASTQ files:
+
+### Download raw sequencing data using SRA Toolkit
+
+Create directories for the FASTQ files and temporary files:
+
+```bash
+mkdir -p rawdata rawdata/tmp
+```
+
+Download the SRA runs using `fasterq-dump`.  
+A maximum of **2 samples are downloaded simultaneously**, with **8 threads per sample**.
+
+```bash
+while read SRR; do
+    echo "Starting $SRR ..."
+
+    mkdir -p "rawdata/tmp/$SRR"
+
+    fasterq-dump "$SRR" \
+        --split-files \
+        --outdir rawdata \
+        --temp "rawdata/tmp/$SRR" \
+        --threads 8 &
+
+    while [ "$(jobs -rp | wc -l)" -ge 2 ]; do
+        sleep 5
+    done
+
+done < SRR_Acc_List.txt
+
+wait
+```
+
+Compress all downloaded FASTQ files:
+
+```bash
+gzip rawdata/*.fastq
+```
+
+The final compressed FASTQ files will be stored in:
+
+```text
+rawdata/
+```
+
+
