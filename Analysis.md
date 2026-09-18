@@ -891,5 +891,138 @@ The main quantities are:
 RSEM estimates transcript abundance first and then summarizes transcript isoforms to obtain gene-level expression estimates.
 > **Important:** TPM and FPKM should not be used directly as input for differential expression analysis with DESeq2. For differential expression, count-based expression estimates should be used instead. RSEM results can be imported into DESeq2 using tools such as `tximport`, while TPM can be used for expression visualization and descriptive comparisons.
 
+## Transcript-level quantification with kallisto
+
+In addition to genome alignment-based quantification using STAR/RSEM, RNA-seq expression can also be quantified using **kallisto**.
+
+Unlike STAR, which aligns reads to the reference genome, kallisto performs **pseudoalignment directly against the reference transcriptome**. Instead of determining the exact genomic alignment position of each read, kallisto identifies the set of transcripts that are compatible with the read sequence.
+
+This approach is generally faster and requires less computational memory than conventional genome alignment, making it useful as an alternative RNA-seq quantification strategy.
+
+In this workflow, the reference transcriptome is obtained from the same **GENCODE v50** release used for the genome annotation.
+
+---
+
+### Download the reference transcriptome and build the kallisto index
+
+Create a directory for the transcriptome reference:
+
+```bash
+mkdir -p transcriptome
+cd transcriptome
+```
+
+Download the GENCODE v50 human transcriptome:
+
+```bash
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_50/gencode.v50.transcripts.fa.gz
+```
+
+Create the kallisto index directory:
+
+```bash
+mkdir -p kallisto_index
+```
+
+Build the kallisto transcriptome index:
+
+```bash
+kallisto index \
+    -i kallisto_index/grch38_gencode50 \
+    gencode.v50.transcripts.fa.gz
+```
+
+Return to the project directory:
+
+```bash
+cd ..
+```
+
+---
+
+### Run kallisto for all samples
+
+Create the output directory:
+
+```bash
+mkdir -p kallisto
+```
+
+Run kallisto pseudoquantification for all trimmed FASTQ files:
+
+```bash
+for file in trimmed/*.fastq.gz; do
+
+    sample=$(basename "$file" .fastq.gz)
+    sample=${sample%_trimmed}
+
+    echo "======================================"
+    echo "Kallisto: $sample"
+    echo "Input:    $file"
+    echo "======================================"
+
+    mkdir -p "kallisto/$sample"
+
+    kallisto quant \
+        -i transcriptome/kallisto_index/grch38_gencode50 \
+        -o "kallisto/$sample" \
+        --single \
+        -l 400 \
+        -s 40 \
+        --threads=10 \
+        "$file"
+
+done
+```
+
+The main options are:
+
+- `-i` – specifies the kallisto transcriptome index.
+- `-o` – specifies the output directory.
+- `--single` – indicates that the dataset contains single-end reads.
+- `-l 400` – specifies the estimated mean fragment length.
+- `-s 40` – specifies the estimated standard deviation of fragment length.
+- `--threads=10` – uses 10 CPU threads.
+
+> **Note:** For paired-end RNA-seq, kallisto can estimate the fragment length distribution directly from the read pairs. For single-end data, however, the mean fragment length (`-l`) and its standard deviation (`-s`) must be provided manually.
+>
+> In this workflow, `-l 400` and `-s 40` are used based on the expected fragment-size distribution of the library preparation protocol. If reliable library-specific fragment length information is available, those values should be used instead.
+
+---
+
+### kallisto output
+
+For each sample, kallisto generates files such as:
+
+```text
+kallisto/
+└── SRRxxxxxxx/
+    ├── abundance.tsv
+    ├── abundance.h5
+    └── run_info.json
+```
+
+The main result file is:
+
+```text
+abundance.tsv
+```
+
+which contains transcript-level abundance estimates including:
+
+```text
+target_id
+length
+eff_length
+est_counts
+tpm
+```
+
+Unlike RSEM, kallisto directly reports expression estimates at the **transcript level** rather than providing a separate gene-level result table.
+
+Transcript-level estimates can later be summarized to the gene level using tools such as **tximport**, together with the transcript-to-gene relationship from the GENCODE annotation.
+
+> **Important:** TPM values are useful for describing relative transcript abundance but should not be used directly as input for DESeq2 differential expression analysis. For DESeq2, kallisto quantifications can be imported and summarized using `tximport`.
+
 
 
