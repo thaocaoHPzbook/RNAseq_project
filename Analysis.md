@@ -135,8 +135,11 @@ Combine all FastQC reports into a single summary report:
 multiqc qc/fastqc \
     -o qc/multiqc
 ```
+At this stage, the main QC metrics to inspect are:
 
-The FastQC reports will be stored in **qc/fastqc/_report.htlm**
+- **Per-base sequence quality / quality score**
+<img width="1874" height="977" alt="image" src="https://github.com/user-attachments/assets/e7d23aa6-1e8e-4c93-a225-f353d957e3e8" />
+- **Adapter content**
+<img width="1912" height="883" alt="image" src="https://github.com/user-attachments/assets/157b74ad-9fc8-4ae6-a767-9b3662300ff2" />
 
-and the combined MultiQC report will be stored in **qc/multiqc/multiqc_report.html**
-
+Other QC metrics can also be examined in more detail in the MultiQC report ** qc/multiqc/multiqc_report.html**
