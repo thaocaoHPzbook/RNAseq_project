@@ -64,15 +64,9 @@ conda create -n rnaseq -c conda-forge -c bioconda \
 
 ## Get the public RNA-seq data from SRA
 The dataset contains **25 RNA-seq samples** obtained from the NCBI Sequence Read Archive (SRA).  
-The corresponding SRA run accession numbers are stored in:
+The corresponding SRA run accession numbers are stored in **SRR_Acc_List.txt**.
 
-```text
-SRR_Acc_List.txt
 ### Download the raw sequencing data in FASTQ format via SRA Toolkit
-
-Create a directory for the raw FASTQ files:
-
-### Download raw sequencing data using SRA Toolkit
 
 Create directories for the FASTQ files and temporary files:
 
@@ -110,10 +104,7 @@ Compress all downloaded FASTQ files:
 gzip rawdata/*.fastq
 ```
 
-The final compressed FASTQ files will be stored in:
-
-```text
-rawdata/
+The final compressed FASTQ files will be stored in **rawdata** folder
 ```
 
 
