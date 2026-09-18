@@ -272,22 +272,25 @@ cd genome
 
 Download the human reference genome (hg38) from the UCSC Genome Browser:
 
-```bash
-wget https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
-```
-
-STAR requires an uncompressed FASTA file, so decompress the genome sequence:
+Download the corresponding GENCODE v50 primary assembly annotation:
 
 ```bash
-gzip -d hg38.fa.gz
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_50/gencode.v50.primary_assembly.annotation.gtf.gz
 ```
 
-The resulting reference genome file will be:
+Decompress both files:
+
+```bash
+gunzip GRCh38.primary_assembly.genome.fa.gz
+gunzip gencode.v50.primary_assembly.annotation.gtf.gz
+```
+
+The resulting reference files are:
 
 ```text
-hg38.fa
+GRCh38.primary_assembly.genome.fa
+gencode.v50.primary_assembly.annotation.gtf
 ```
-
 ### Reference genome sources
 
 The UCSC Genome Browser is not the only source for reference genome sequences. Other commonly used databases include:
@@ -297,5 +300,48 @@ The UCSC Genome Browser is not the only source for reference genome sequences. O
 - [FlyBase](https://flybase.org/) – provides genomic and genetic resources for *Drosophila* species.
 - [WormBase](https://wormbase.org/) – provides genome sequences, annotations, and genetic information for *Caenorhabditis elegans* and related nematodes.
 
-> **Note:** The reference genome FASTA and gene annotation file used later should come from compatible genome builds. For example, if using hg38/GRCh38, the corresponding annotation should also be based on GRCh38.
+> **Note:** The reference genome FASTA and gene annotation GTF should be compatible with each other. They should use the same genome assembly, such as GRCh38 for human, and preferably come from the same database and release.  
+>
+> For example, in this workflow, both the reference genome and annotation are obtained from **GENCODE Release 50**:
+>
+> ```text
+> GRCh38.primary_assembly.genome.fa
+> gencode.v50.primary_assembly.annotation.gtf
+> ```
+>
+> Using the genome and annotation from the same release helps avoid inconsistencies in chromosome names, genomic coordinates, scaffolds, and transcript annotations during read mapping and expression quantification.
+>
+> For standard human RNA-seq analysis, the **primary assembly** is commonly used because it avoids additional alternate loci and haplotype sequences that may increase ambiguous or multi-mapping reads.
+
+### Build the STAR genome index
+
+Create a directory for the STAR genome index:
+
+```bash
+mkdir -p star-index
+```
+
+Generate the STAR index:
+
+```bash
+STAR \
+    --runThreadN 16 \
+    --runMode genomeGenerate \
+    --genomeDir star-index \
+    --genomeFastaFiles GRCh38.primary_assembly.genome.fa \
+    --sjdbGTFfile gencode.v50.primary_assembly.annotation.gtf \
+    --sjdbOverhang 99
+```
+
+`--sjdbOverhang` is generally set to:
+
+```text
+read length - 1
+```
+
+For 100-bp reads:
+
+```text
+sjdbOverhang = 99
+```
 
