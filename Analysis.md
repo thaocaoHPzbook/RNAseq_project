@@ -332,7 +332,7 @@ STAR \
     --sjdbGTFfile gencode.v50.primary_assembly.annotation.gtf \
     --sjdbOverhang 99
 ```
-
+**Note:** 
 `--sjdbOverhang` is generally set to:
 
 ```text
