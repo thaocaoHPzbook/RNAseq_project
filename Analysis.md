@@ -142,5 +142,8 @@ At this stage, the main QC metrics to inspect are:
 
 - **Adapter content**
 <img width="1912" height="883" alt="image" src="https://github.com/user-attachments/assets/157b74ad-9fc8-4ae6-a767-9b3662300ff2" />
+- **GC content**
+<img width="1891" height="1112" alt="image" src="https://github.com/user-attachments/assets/772a06e6-634c-4bfa-ab15-dd00e24fc88b" />
+
 
 Other QC metrics can also be examined in more detail in the MultiQC report ** qc/multiqc/multiqc_report.html**
