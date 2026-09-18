@@ -217,3 +217,20 @@ qc/trimmed_multiqc/multiqc_report.html
 Compare this report with the initial raw-read QC report to verify the improvement in **Adapter Content** and **Per base sequence quality** before proceeding to read mapping.
 <img width="1823" height="1094" alt="image" src="https://github.com/user-attachments/assets/2a6f1fdf-e34a-4d55-9659-e190d59cec25" />
 
+
+## Read duplication and deduplication
+
+High sequence duplication can be observed in RNA-seq data because transcripts are expressed at very different abundance levels. Highly expressed genes may naturally generate many identical or near-identical reads.
+
+Therefore, a high **Sequence Duplication Level** in FastQC does not necessarily indicate a technical problem.
+
+For standard bulk RNA-seq data, **deduplication is generally not recommended unless there is a clear technical reason to do so**, such as:
+
+- strong evidence of PCR over-amplification,
+- a library preparation protocol specifically designed for duplicate removal,
+- or the presence of UMI (Unique Molecular Identifier) information.
+
+Without UMI or other supporting evidence, identical reads cannot be reliably distinguished between true biological signal and PCR duplicates. Removing them may bias gene expression estimates, especially for highly expressed transcripts.
+
+For this workflow, no deduplication step is performed unless a specific technical issue is identified.
+
