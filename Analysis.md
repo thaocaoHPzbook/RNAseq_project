@@ -1324,8 +1324,8 @@ head(meta_genes)
 | ENSG00000000457.14_SCYL3 | ENSG00000000457.14 | SCYL3 | protein_coding | chr1 | 169849631 | 169894267 | - | ENSG00000000457 |
 | ENSG00000000460.17_C1orf112 | ENSG00000000460.17 | C1orf112 | protein_coding | chr1 | 169662007 | 169854080 | + | ENSG00000000460 |
 
-### Comparison of transcriptomic profiles across samples
-
+### 3.2. Comparison of transcriptomic profiles across samples
+[(Back to top)](#top)
 After importing the expression matrix into R, we can begin exploring the overall transcriptomic profiles across samples.
 
 The expression matrix contains **61,852 genes across 25 samples**. However, many annotated genes may have very low or no detectable expression in this dataset. Therefore, we first examine the distribution of the **mean TPM across all samples**.
