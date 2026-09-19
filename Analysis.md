@@ -2948,8 +2948,8 @@ ggplot(
 ```
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/52757856-3170-4e76-bd3f-e44c9b900129" />
 
-### Grouping of the identified DEGs
-
+### 3.4. Grouping of the identified DEGs
+[(Back to top)](#top)
 The identified DEGs are unlikely to represent a single biological pattern. Different groups of genes may show distinct expression profiles across cortical layers.
 
 Here, DEGs are first identified using a **likelihood ratio test (LRT)** to detect genes whose expression varies across `Layer` after accounting for `Individual`. The DEGs are then grouped according to the layer in which they show the highest average expression.
