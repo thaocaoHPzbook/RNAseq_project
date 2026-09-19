@@ -898,7 +898,7 @@ The main quantities are:
 RSEM estimates transcript abundance first and then summarizes transcript isoforms to obtain gene-level expression estimates.
 > **Important:** TPM and FPKM should not be used directly as input for differential expression analysis with DESeq2. For differential expression, count-based expression estimates should be used instead. RSEM results can be imported into DESeq2 using tools such as `tximport`, while TPM can be used for expression visualization and descriptive comparisons.
 
-## Transcript-level quantification with kallisto
+### 2.2.2. Read pseudomapping with kallisto and data quantification
 [(Back to top)](#top)
 In addition to genome alignment-based quantification using STAR/RSEM, RNA-seq expression can also be quantified using **kallisto**.
 
