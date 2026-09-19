@@ -1159,3 +1159,83 @@ ENSG00000000938.13_FGR             6.80       2.60       1.91       2.05       2
 ```
 
 > **Note:** TPM values are useful for exploratory analyses, visualization, clustering, and comparison of relative expression patterns. For differential expression analysis with **DESeq2**, count-based expression estimates should be used instead of TPM.
+
+### Import sample metadata
+
+In addition to the expression matrix, the corresponding sample metadata are required for downstream analyses.
+
+When retrieving the SRA accessions, the metadata table was also downloaded from the SRA Run Selector as:
+
+```text
+SraRunTable.csv
+```
+
+Additional sample information, including the cortical layer of each sample, was stored separately in:
+
+```text
+meta_additional.tsv
+```
+
+The two metadata tables can be merged using the sample identifier:
+
+```r
+meta <- read.csv(
+  "meta_additional.tsv",
+  sep = "\t",
+  header = TRUE
+) %>%
+
+  dplyr::inner_join(
+    read.csv("SraRunTable.csv", header = TRUE),
+    by = c("Sample" = "Sample.Name"),
+    suffix = c("", ".y")
+  ) %>%
+
+  dplyr::select(
+    Run,
+    Individual,
+    AGE,
+    Sample,
+    Layer
+  ) %>%
+
+  dplyr::rename(
+    Age = AGE
+  )
+```
+
+Check the metadata:
+
+```r
+head(meta)
+```
+
+```text
+         Run Individual  Age    Sample Layer
+1 SRR2815952     DS1_H1 16.7 DS1_H1_01    L1
+2 SRR2815954     DS1_H1 16.7 DS1_H1_03    L2
+3 SRR2815957     DS1_H1 16.7 DS1_H1_06    L3
+4 SRR2815958     DS1_H1 16.7 DS1_H1_07    L4
+5 SRR2815961     DS1_H1 16.7 DS1_H1_10    L5
+6 SRR2815964     DS1_H1 16.7 DS1_H1_13    L6
+```
+
+Check the dimensions:
+
+```r
+dim(meta)
+```
+
+```text
+[1] 25 5
+```
+
+The final metadata table contains **25 samples** and the following variables:
+
+```text
+Run
+Individual
+Age
+Sample
+Layer
+```
