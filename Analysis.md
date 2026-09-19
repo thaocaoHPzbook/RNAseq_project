@@ -5085,6 +5085,7 @@ Common approaches include:
 In brain tissue, for example, deconvolution can be used to estimate the relative abundance of neurons, astrocytes, oligodendrocytes, microglia, and other cell populations.
 
 <img width="652" height="221" alt="image" src="https://github.com/user-attachments/assets/23f1e8a0-a156-4f88-bf84-1b14cbc7179e" />
+*Figure 4a of the [paper](https://www.nature.com/articles/nn.4548#Fig4).*
 
 > **Note:** Deconvolution requires appropriate reference expression profiles. Estimated cell proportions should therefore be interpreted as computational estimates rather than direct cell counts.
 
@@ -5115,6 +5116,7 @@ Transcript-level abundance estimated by tools such as RSEM or kallisto can also 
 Long-read sequencing technologies such as PacBio Iso-Seq or Oxford Nanopore RNA sequencing are generally more suitable when accurate full-length transcript and isoform reconstruction is the primary objective.
 
 <img width="1280" height="250" alt="image" src="https://github.com/user-attachments/assets/c37843fd-af5f-438f-9bc3-a946c7d22447" />
+*Figure 1 of the [rMATS paper](https://www.pnas.org/doi/10.1073/pnas.1419161111)*
 
 ### 3.6.3. Gene fusion detection
 
