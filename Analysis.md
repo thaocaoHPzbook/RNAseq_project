@@ -5116,7 +5116,7 @@ Transcript-level abundance estimated by tools such as RSEM or kallisto can also 
 Long-read sequencing technologies such as PacBio Iso-Seq or Oxford Nanopore RNA sequencing are generally more suitable when accurate full-length transcript and isoform reconstruction is the primary objective.
 
 <img width="1280" height="250" alt="image" src="https://github.com/user-attachments/assets/c37843fd-af5f-438f-9bc3-a946c7d22447" />
-*Figure 1 of the [rMATS paper](https://www.pnas.org/doi/10.1073/pnas.1419161111)*
+*Figure 1 of the [rMATS paper](https://www.pnas.org/doi/10.1073/pnas.1419161111).*
 
 ### 3.6.3. Gene fusion detection
 
