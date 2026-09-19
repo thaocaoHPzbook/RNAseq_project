@@ -1551,3 +1551,125 @@ meta_genes %>%
 - `count(gene_type, sort = TRUE)` – counts genes in each biotype.
 - `slice_head(n = 15)` – keeps the 15 most abundant gene biotypes.
 - `coord_flip()` – displays the bar plot horizontally for easier reading.
+<img width="1440" height="600" alt="image" src="https://github.com/user-attachments/assets/2d1214bf-8122-4a39-b4ff-817bc3face94" />
+
+### Sample correlation and hierarchical clustering
+
+Pairwise sample correlations were calculated using both **Pearson correlation** and **Spearman rank correlation**.
+
+```r
+library(ggplot2)
+library(ggdendro)
+library(patchwork)
+
+corr_pearson <- cor(
+  log1p(expr),
+  method = "pearson"
+)
+
+corr_spearman <- cor(
+  expr,
+  method = "spearman"
+)
+```
+
+- `Pearson` – measures linear correlation between samples.
+- `Spearman` – measures rank-based correlation and is more robust to the expression-value distribution.
+- `log1p(expr)` – log-transforms TPM values before calculating Pearson correlation.
+
+Hierarchical clustering was performed using `1 - correlation` as the distance:
+
+```r
+hcl_pearson <- hclust(
+  as.dist(1 - corr_pearson)
+)
+
+hcl_spearman <- hclust(
+  as.dist(1 - corr_spearman)
+)
+```
+
+Visualize the clustering results:
+
+```r
+plot_dendrogram <- function(hcl, title, line_color) {
+
+  dend <- ggdendro::dendro_data(hcl)
+
+  ggplot() +
+
+    geom_segment(
+      data = dend$segments,
+      aes(
+        x = x,
+        y = y,
+        xend = xend,
+        yend = yend
+      ),
+      color = line_color,
+      linewidth = 0.7
+    ) +
+
+    geom_text(
+      data = dend$labels,
+      aes(
+        x = x,
+        y = y,
+        label = label
+      ),
+      angle = 60,
+      hjust = 1,
+      size = 3.2
+    ) +
+
+    labs(
+      title = title,
+      x = NULL,
+      y = "1 − Correlation"
+    ) +
+
+    scale_y_continuous(
+      expand = expansion(mult = c(0.15, 0.05))
+    ) +
+
+    theme_minimal(base_size = 12) +
+
+    theme(
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = 14
+      ),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      panel.grid = element_blank(),
+      axis.title.y = element_text(face = "bold"),
+      plot.margin = margin(10, 15, 30, 15)
+    )
+}
+```
+
+```r
+p1 <- plot_dendrogram(
+  hcl_pearson,
+  "Pearson Correlation",
+  "#8FB9A8"
+)
+
+p2 <- plot_dendrogram(
+  hcl_spearman,
+  "Spearman Correlation",
+  "#C6A6C9"
+)
+
+options(
+  repr.plot.width = 14,
+  repr.plot.height = 6
+)
+
+p1 + p2
+```
+
+Samples with more similar transcriptomic profiles cluster closer together in the dendrogram. The clustering can later be compared with sample metadata such as `Individual`, `Age`, and `Layer`.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/65367bb3-1ef0-48f3-a9ac-ca3921d623f0" />
+
