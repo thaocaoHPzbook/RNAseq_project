@@ -3868,4 +3868,291 @@ p_cluster_number
 Each panel represents one hierarchical DEG cluster. The boxplots show the distribution of gene-level Z-scores across Layers, while the line and points show the mean expression pattern of the cluster.
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/7723ef1f-c85c-472c-a616-f71be9766b7d" />
 
+### Visualize DEG clusters in dendrogram order
+
+The cluster numbers assigned by `cutree()` do not necessarily follow their visual order in the hierarchical dendrogram. Therefore, the clusters can be reordered according to their positions in the tree.
+
+```r
+cluster_order <- unique(
+  cl_DEG[hcl_DEG$order]
+)
+
+plot_df_hcl$Cluster <- factor(
+  as.character(plot_df_hcl$Cluster),
+  levels = as.character(cluster_order)
+)
+```
+
+Plot the expression profiles following the dendrogram cluster order:
+
+```r
+library(ggplot2)
+
+p_cluster_treeorder <- ggplot(
+  plot_df_hcl,
+  aes(
+    x = Layer,
+    y = Zscore,
+    fill = Layer
+  )
+) +
+
+  geom_boxplot(
+    width = 0.65,
+    linewidth = 0.3,
+    outlier.alpha = 0.10,
+    outlier.size = 0.5
+  ) +
+
+  stat_summary(
+    aes(group = 1),
+    fun = mean,
+    geom = "line",
+    linewidth = 0.7,
+    color = "#555555"
+  ) +
+
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 1.6,
+    color = "#333333"
+  ) +
+
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.3,
+    color = "grey65"
+  ) +
+
+  facet_wrap(
+    ~ Cluster,
+    ncol = 5,
+    labeller = as_labeller(cluster_labels)
+  ) +
+
+  scale_fill_manual(
+    values = pastel_cols
+  ) +
+
+  labs(
+    title = "Expression patterns of DEG clusters",
+    subtitle = "Clusters ordered according to the dendrogram",
+    x = "Layer",
+    y = "Expression Z-score"
+  ) +
+
+  theme_classic(base_size = 11) +
+
+  theme(
+    legend.position = "none",
+
+    strip.background = element_rect(
+      fill = "#F3F3F3",
+      color = NA
+    ),
+
+    strip.text = element_text(
+      face = "bold",
+      size = 9
+    ),
+
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      size = 8
+    ),
+
+    axis.text.y = element_text(
+      size = 8
+    ),
+
+    axis.title = element_text(
+      size = 10
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5,
+      size = 13
+    ),
+
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      color = "grey40",
+      size = 10
+    ),
+
+    panel.spacing = unit(
+      0.7,
+      "lines"
+    )
+  )
+```
+
+### DEG correlation heatmap
+
+```r
+library(pheatmap)
+library(scales)
+
+k <- 15
+
+cluster_cols <- hue_pal(
+  c = 100,
+  l = 65
+)(k)
+
+names(cluster_cols) <- as.character(
+  1:k
+)
+
+cluster_anno <- data.frame(
+  Cluster = factor(
+    cl_DEG,
+    levels = 1:k
+  )
+)
+
+rownames(cluster_anno) <- names(
+  cl_DEG
+)
+
+anno_cols <- list(
+  Cluster = cluster_cols
+)
+```
+
+Order the genes according to the hierarchical dendrogram:
+
+```r
+ord <- hcl_DEG$order
+
+corr_plot <- corr_DEG[
+  ord,
+  ord,
+  drop = FALSE
+]
+
+ordered_clusters <- cl_DEG[
+  ord
+]
+```
+
+Identify the boundaries between DEG clusters:
+
+```r
+gaps_pos <- cumsum(
+  rle(
+    ordered_clusters
+  )$lengths
+)
+
+gaps_pos <- gaps_pos[
+  -length(gaps_pos)
+]
+```
+
+Reorder the cluster annotation accordingly:
+
+```r
+cluster_anno <- cluster_anno[
+  rownames(corr_plot),
+  ,
+  drop = FALSE
+]
+```
+
+Limit the displayed correlation range to improve color contrast:
+
+```r
+corr_plot[
+  corr_plot > 0.7
+] <- 0.7
+
+corr_plot[
+  corr_plot < -0.7
+] <- -0.7
+```
+
+Define the heatmap colors:
+
+```r
+heat_cols <- colorRampPalette(
+  c(
+    "#2B6CB0",
+    "#8FBFE0",
+    "#F7F7F7",
+    "#F4A6B7",
+    "#C2185B"
+  )
+)(100)
+```
+
+Generate the heatmap:
+
+```r
+ph <- pheatmap(
+  corr_plot,
+
+  cluster_rows = FALSE,
+  cluster_cols = FALSE,
+
+  annotation_col = cluster_anno,
+  annotation_row = cluster_anno,
+  annotation_colors = anno_cols,
+
+  show_rownames = FALSE,
+  show_colnames = FALSE,
+
+  border_color = NA,
+
+  gaps_row = gaps_pos,
+  gaps_col = gaps_pos,
+
+  color = heat_cols,
+
+  breaks = seq(
+    -0.7,
+    0.7,
+    length.out = 101
+  ),
+
+  main = "Spearman correlation of hierarchical DEG clusters",
+
+  silent = TRUE
+)
+```
+
+### Combine the heatmap and cluster expression profiles
+
+```r
+library(gridExtra)
+library(grid)
+
+options(
+  repr.plot.width = 18,
+  repr.plot.height = 8
+)
+
+grid.arrange(
+  ph$gtable,
+  ggplotGrob(
+    p_cluster_treeorder
+  ),
+
+  ncol = 2,
+
+  widths = c(
+    1.05,
+    1.35
+  )
+)
+```
+
+The heatmap shows the similarity between DEG expression patterns, while the adjacent faceted plots summarize the Layer-specific expression profile of each hierarchical cluster.
+<img width="2160" height="960" alt="image" src="https://github.com/user-attachments/assets/03ae424d-316f-42ce-a49a-d2cd2c0ef0d3" />
+
+
 
