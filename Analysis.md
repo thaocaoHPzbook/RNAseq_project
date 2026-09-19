@@ -5083,6 +5083,7 @@ Common approaches include:
 - Other reference-based deconvolution methods
 
 In brain tissue, for example, deconvolution can be used to estimate the relative abundance of neurons, astrocytes, oligodendrocytes, microglia, and other cell populations.
+
 <img width="652" height="221" alt="image" src="https://github.com/user-attachments/assets/23f1e8a0-a156-4f88-bf84-1b14cbc7179e" />
 
 > **Note:** Deconvolution requires appropriate reference expression profiles. Estimated cell proportions should therefore be interpreted as computational estimates rather than direct cell counts.
@@ -5112,6 +5113,7 @@ Common tools include:
 Transcript-level abundance estimated by tools such as RSEM or kallisto can also be used for isoform-level analyses.
 
 Long-read sequencing technologies such as PacBio Iso-Seq or Oxford Nanopore RNA sequencing are generally more suitable when accurate full-length transcript and isoform reconstruction is the primary objective.
+
 <img width="1280" height="250" alt="image" src="https://github.com/user-attachments/assets/c37843fd-af5f-438f-9bc3-a946c7d22447" />
 
 ### 3.6.3. Gene fusion detection
@@ -5134,6 +5136,7 @@ Common tools include:
 - JAFFA
 
 For STAR-based workflows, fusion analysis can be performed by enabling chimeric read detection during alignment and then analyzing the resulting chimeric junctions with dedicated fusion-detection tools.
+
 <img width="370" height="250" alt="image" src="https://github.com/user-attachments/assets/6bfebb83-93ae-442c-af57-2260e396e604" />
 
 > **Note:** Fusion detection is usually performed only when the biological question suggests that gene rearrangements or fusion transcripts may be relevant, such as in cancer or rare genetic diseases.
