@@ -244,7 +244,7 @@ For this workflow, no deduplication step is performed unless a specific technica
 
 ## 2.2. Read mapping/pseudomapping and quantification
 [(Back to top)](#top)
-### 2-2-1 Read mapping with STAR and data quantification
+### 2.2.1. Read mapping with STAR and data quantification
 (Back to top)
 Once the quality of the data is confirmed, we need to convert those millions of reads per sample into the gene- or transcript-level quantification. This would need the assignment of reads to genes or transcripts. To do this, the mostly common first step is for each read, to look for the genomic region that match with the read, given the complete genomic sequences. The identified region is then most likely the region being transcribed and generate the sequenced read in the end. This step of looking for the matched genomic regions for reads is called read genome mapping or alignment.
 
