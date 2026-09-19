@@ -1,22 +1,23 @@
-Table of Content
-# 1.Preparation
-## 1.1.Software setup for RNA-seq preprocessing and analysis
-## 1.2.Get the public RNA-seq data from SRA
 
-# 2.Preprocessing of RNA-seq data 
-## 2.1.Quality control of RNA-seq data
-## 2.2.Read mapping/pseudomapping and quantification
-### 2.2.1.Read mapping with STAR and data quantification
-### 2.2.2.Read pseudomapping with kallisto and data quantification
-## 2.3.Cross-species comparison
+# Table of Contents
 
-# 3.Analyze and compare RNA-seq data
-## 3.1.Import data to R
-## 3.2.Comparison of transcriptomic profiles across samples
-## 3.3.Differential expression analysis - DESeq2
-## 3.4.Grouping of the identified DEGs
-## 3.5.Making sense of the genes
-## 3.6Other analysis
+- [1. Preparation](#1-preparation)
+  - [1.1. Software setup for RNA-seq preprocessing and analysis](#11-software-setup-for-rna-seq-preprocessing-and-analysis)
+  - [1.2. Get the public RNA-seq data from SRA](#12-get-the-public-rna-seq-data-from-sra)
+
+- [2. Preprocessing of RNA-seq data](#2-preprocessing-of-rna-seq-data)
+  - [2.1. Quality control of RNA-seq data](#21-quality-control-of-rna-seq-data)
+  - [2.2. Read mapping/pseudomapping and quantification](#22-read-mappingpseudomapping-and-quantification)
+    - [2.2.1. Read mapping with STAR and data quantification](#221-read-mapping-with-star-and-data-quantification)
+    - [2.2.2. Read pseudomapping with kallisto and data quantification](#222-read-pseudomapping-with-kallisto-and-data-quantification)
+
+- [3. Analyze and compare RNA-seq data](#3-analyze-and-compare-rna-seq-data)
+  - [3.1. Import data to R](#31-import-data-to-r)
+  - [3.2. Comparison of transcriptomic profiles across samples](#32-comparison-of-transcriptomic-profiles-across-samples)
+  - [3.3. Differential expression analysis - DESeq2](#33-differential-expression-analysis---deseq2)
+  - [3.4. Grouping of the identified DEGs](#34-grouping-of-the-identified-degs)
+  - [3.5. Making sense of the genes](#35-making-sense-of-the-genes)
+  - [3.6. Other analysis](#36-other-analysis)
 
 
 
@@ -41,6 +42,8 @@ Below is a summary of the main software that will be introduced and/or used thro
 | RSEM | https://deweylab.github.io/RSEM/ | Expression quantification | UNIX/Unix-like |
 | R | https://www.r-project.org/ | Commonly used programming language and analytical framework for statistics | UNIX/Unix-like, Win |
 | DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html | Differential expression analysis | R package |
+| MultiQC | https://multiqc.info/ | Aggregate quality-control results from multiple tools and samples into a single report | UNIX/Unix-like, Windows |
+| RSeQC | https://rseqc.sourceforge.net/ | Assess RNA-seq alignment quality, library strandedness, read distribution, and gene-body coverage | UNIX/Unix-like |
 
 
 ## RNA-seq Environment Setup
