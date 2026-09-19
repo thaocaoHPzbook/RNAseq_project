@@ -1285,3 +1285,35 @@ expr <- expr[
   meta_genes$ensembl_gene_id_version,
 ]
 ```
+
+### Check expression matrix and gene annotation
+
+Inspect the first rows of the expression matrix:
+
+```r
+head(expr)
+```
+
+
+| Gene | SRR2815952 | SRR2815954 | SRR2815957 | SRR2815958 | SRR2815961 |
+|---|---:|---:|---:|---:|---:|
+| ENSG00000000003.15_TSPAN6 | 6.76 | 8.26 | 3.44 | 2.90 | 5.07 |
+| ENSG00000000005.6_TNMD | 0.00 | 0.00 | 0.33 | 0.15 | 0.43 |
+| ENSG00000000419.14_DPM1 | 25.92 | 39.52 | 36.24 | 35.12 | 37.71 |
+| ENSG00000000457.14_SCYL3 | 1.70 | 2.85 | 4.74 | 6.28 | 5.52 |
+| ENSG00000000460.17_C1orf112 | 0.00 | 0.90 | 0.64 | 0.49 | 0.33 |
+
+Inspect the gene annotation table:
+
+```r
+head(meta_genes)
+```
+
+
+| rsem_id | ensembl_gene_id_version | hgnc_symbol | gene_type | chromosome_name | start_position | end_position | strand | ensembl_gene_id |
+|---|---|---|---|---|---:|---:|---|---|
+| ENSG00000000003.15_TSPAN6 | ENSG00000000003.15 | TSPAN6 | protein_coding | chrX | 100627108 | 100639991 | - | ENSG00000000003 |
+| ENSG00000000005.6_TNMD | ENSG00000000005.6 | TNMD | protein_coding | chrX | 100584936 | 100599885 | + | ENSG00000000005 |
+| ENSG00000000419.14_DPM1 | ENSG00000000419.14 | DPM1 | protein_coding | chr20 | 50934867 | 50959140 | - | ENSG00000000419 |
+| ENSG00000000457.14_SCYL3 | ENSG00000000457.14 | SCYL3 | protein_coding | chr1 | 169849631 | 169894267 | - | ENSG00000000457 |
+| ENSG00000000460.17_C1orf112 | ENSG00000000460.17 | C1orf112 | protein_coding | chr1 | 169662007 | 169854080 | + | ENSG00000000460 |
