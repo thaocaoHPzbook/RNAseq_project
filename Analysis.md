@@ -24,12 +24,14 @@
 # 1.Preparation
 ## 1.1.Software setup for RNA-seq preprocessing and analysis
 [(Back to top)](#top)
+
 ### 1.1.2. Install the required tools with the help from conda
 Now you have access to the server/cluster and hopefully also know the basics of using it via the command line. The next step is to set up the tools required for the following data preprocessing and analysis.
 
 Below is a summary of the main software that will be introduced and/or used throughout the workflow.
 
 ## Software
+[(Back to top)](#top)
 
 | Software | Link | Function | Compatible OS |
 |---|---|---|---|
@@ -48,6 +50,7 @@ Below is a summary of the main software that will be introduced and/or used thro
 
 
 ## RNA-seq Environment Setup
+[(Back to top)](#top)
 
 Create a dedicated Conda environment for RNA-seq preprocessing and analysis.
 
@@ -70,6 +73,7 @@ conda activate rnaseq
 
 ## 1.2. Get the public RNA-seq data from SRA
 [(Back to top)](#top)
+
 The dataset contains **25 RNA-seq samples** obtained from the NCBI Sequence Read Archive (SRA).  
 The corresponding SRA run accession numbers are stored in **SRR_Acc_List.txt**.
 
@@ -116,6 +120,7 @@ The final compressed FASTQ files will be stored in **rawdata/** folder.
 Before processing the RNA-seq data, the quality of the raw FASTQ files should be assessed.
 
 ### Run FastQC
+[(Back to top)](#top)
 
 Create directories for FastQC and MultiQC results:
 
@@ -132,6 +137,7 @@ fastqc rawdata/*.fastq \
 ```
 
 ### Summarize QC results with MultiQC
+[(Back to top)](#top)
 
 Combine all FastQC reports into a single summary report:
 
@@ -165,6 +171,7 @@ IMPORTANT NOTE: It is not always necessary to do anything here even if problems 
 
 
 ## Adapter trimming
+[(Back to top)](#top)
 
 If adapter contamination is detected during the initial FastQC/MultiQC assessment, remove the adapter sequences before read alignment and quantification.
 
@@ -202,6 +209,7 @@ Here:
 - The trimmed reads are compressed automatically and stored in folder **trimmed/SRRxxxxxxx_trimmed.fastq.gz**
 
 ### Quality control after trimming
+[(Back to top)](#top)
 
 After adapter trimming, run FastQC again to confirm that adapter contamination has been removed and that the remaining reads retain acceptable sequence quality.
 
@@ -227,6 +235,7 @@ Compare this report with the initial raw-read QC report to verify the improvemen
 
 
 ## Read duplication and deduplication
+[(Back to top)](#top)
 
 High sequence duplication can be observed in RNA-seq data because transcripts are expressed at very different abundance levels. Highly expressed genes may naturally generate many identical or near-identical reads.
 
@@ -269,6 +278,7 @@ More details information are available in the STAR paper (technical details in i
 
 
 ### Download the reference genome
+[(Back to top)](#top)
 
 Before read alignment, download the reference genome sequence and prepare it for STAR indexing.
 
@@ -301,6 +311,7 @@ GRCh38.primary_assembly.genome.fa
 gencode.v50.primary_assembly.annotation.gtf
 ```
 ### Reference genome sources
+[(Back to top)](#top)
 
 The UCSC Genome Browser is not the only source for reference genome sequences. Other commonly used databases include:
 
@@ -323,6 +334,7 @@ The UCSC Genome Browser is not the only source for reference genome sequences. O
 > For standard human RNA-seq analysis, the **primary assembly** is commonly used because it avoids additional alternate loci and haplotype sequences that may increase ambiguous or multi-mapping reads.
 
 ### Build the STAR genome index
+[(Back to top)](#top)
 
 Create a directory for the STAR genome index, and Generate the STAR index:
 
@@ -349,6 +361,7 @@ For 100-bp reads:
 sjdbOverhang = 99
 ```
 ## Mapping with STAR
+[(Back to top)](#top)
 
 The trimmed RNA-seq reads were aligned to the **GENCODE v50 GRCh38 primary assembly** using the STAR genome index generated in the previous step.
 
@@ -411,6 +424,7 @@ mapping_count/SRRxxxxxxx/
 
 
 ## Brief introduction to SAM/BAM format
+[(Back to top)](#top)
 
 **SAM (Sequence Alignment/Map)** is a text-based format used to store sequencing reads aligned to a reference genome.  
 **BAM (Binary Alignment/Map)** contains the same information as SAM but in a compressed binary format, requiring less storage space.
@@ -439,6 +453,7 @@ Each alignment record contains **11 mandatory fields**:
 Additional optional fields may appear after these 11 mandatory fields.
 
 ### View BAM files with Samtools
+[(Back to top)](#top)
 
 BAM files are binary files and therefore cannot be read directly with a normal text editor.  
 Use **Samtools** to inspect and manipulate BAM files.
@@ -452,6 +467,7 @@ samtools view mapping_count/SRRxxxxxxx/Aligned.sortedByCoord.out.bam | head -5
 > **Note:** Although SAM files are plain text and can technically be opened or edited using a text editor, manual editing is not recommended because it may break the required SAM format. Samtools should preferably be used for viewing and manipulating both SAM and BAM files.
 
 ### Common optional alignment fields
+[(Back to top)](#top)
 
 STAR may include additional fields in each alignment record, such as:
 
@@ -463,6 +479,7 @@ STAR may include additional fields in each alignment record, such as:
 Two particularly important fields for interpreting alignments are **FLAG** and **CIGAR**.
 
 ### FLAG
+[(Back to top)](#top)
 
 The `FLAG` field stores multiple alignment properties as a bitwise integer.
 
@@ -486,6 +503,7 @@ Common FLAG values include:
 Because FLAG is bitwise encoded, a single integer can represent several properties simultaneously.
 
 ### CIGAR
+[(Back to top)](#top)
 
 The **CIGAR string** describes how a read is aligned to the reference genome.
 
@@ -550,6 +568,7 @@ which means:
 The `N` operation is particularly important in RNA-seq because it allows splice-aware aligners such as STAR to represent reads spanning exon-exon junctions.
 
 ## RNA-seq quality assessment with RSeQC
+[(Back to top)](#top)
 
 After STAR alignment, additional RNA-seq–specific quality control can be performed using **RSeQC**.
 
@@ -562,6 +581,7 @@ RSeQC requires:
 In this workflow, the BED12 annotation is generated from the same **GENCODE v50 primary assembly annotation** used for STAR indexing.
 
 ### Convert GENCODE GTF annotation to BED12
+[(Back to top)](#top)
 
 First convert the GTF annotation to `genePred` format and then to BED12 using UCSC utilities:
 
@@ -588,6 +608,7 @@ genome/gencode.v50.primary_assembly.annotation.bed
 ---
 
 ### Run RSeQC for all samples
+[(Back to top)](#top)
 
 Create an output directory, and Run RSeQC on all STAR-aligned BAM files:
 
@@ -664,6 +685,7 @@ done
 ```
 
 ### Main RSeQC analyses
+[(Back to top)](#top)
 
 The workflow performs three RNA-seq–specific QC analyses:
 
@@ -703,6 +725,7 @@ rseqc/
 RSeQC results should be interpreted together with the previous **FastQC/MultiQC** and **STAR mapping statistics**, rather than using any single QC metric alone.
 
 ### Summarize RSeQC results with MultiQC
+[(Back to top)](#top)
 
 After running RSeQC for all samples, use **MultiQC** to combine the QC results into a single report.
 
@@ -730,7 +753,9 @@ This report provides a convenient overview of RNA-seq–specific QC metrics acro
 <img width="1787" height="1135" alt="image" src="https://github.com/user-attachments/assets/8fb66a52-7168-43fa-93e8-795eee36ea42" />
 <img width="1804" height="1027" alt="image" src="https://github.com/user-attachments/assets/b0503888-f43c-42be-9c2b-727b74179a20" />
 <img width="1808" height="1109" alt="image" src="https://github.com/user-attachments/assets/32f3e541-672f-4e8f-9965-6e3f5b6a6b39" />
+
 ### Interpretation of RSeQC results
+[(Back to top)](#top)
 
 The RSeQC results indicated that the libraries were predominantly **unstranded**, with approximately equal proportions of sense and antisense reads across samples. Therefore, downstream expression quantification should be performed using an unstranded configuration.
 
@@ -742,6 +767,7 @@ Overall, no major RNA-seq–specific QC problem was identified that would preven
 
 
 ### Optional: Gene biotype composition
+[(Back to top)](#top)
 
 As an additional RNA-seq quality assessment, gene counts can also be summarized according to **GENCODE gene biotypes**, such as:
 
@@ -759,6 +785,7 @@ Its interpretation depends on the sample type and library preparation method. Fo
 Therefore, biotype composition is used here mainly as an **optional library-characterization and QC step** rather than as a mandatory preprocessing step.
 
 ## Gene expression quantification with RSEM
+[(Back to top)](#top)
 
 Read alignment is an intermediate step in RNA-seq analysis. For downstream analyses, the main objective is usually to estimate the expression level of genes and transcripts.
 
@@ -783,6 +810,7 @@ In this workflow, RSEM uses **STAR** internally for read alignment.
 ---
 
 ### Build the RSEM reference
+[(Back to top)](#top)
 
 Create a directory for the RSEM reference:
 
@@ -812,6 +840,7 @@ Here:
 ---
 
 ### Run RSEM for all samples
+[(Back to top)](#top)
 
 Create an output directory:
 
@@ -860,6 +889,7 @@ The main options are:
 ---
 
 ### RSEM output
+[(Back to top)](#top)
 
 For each sample, RSEM generates gene- and transcript-level expression estimates:
 
@@ -911,6 +941,7 @@ In this workflow, the reference transcriptome is obtained from the same **GENCOD
 ---
 
 ### Download the reference transcriptome and build the kallisto index
+[(Back to top)](#top)
 
 Create a directory for the transcriptome reference:
 
@@ -948,6 +979,7 @@ cd ..
 ---
 
 ### Run kallisto for all samples
+[(Back to top)](#top)
 
 Create the output directory:
 
@@ -998,6 +1030,7 @@ The main options are:
 ---
 
 ### kallisto output
+[(Back to top)](#top)
 
 For each sample, kallisto generates files such as:
 
@@ -1018,6 +1051,8 @@ abundance.tsv
 which contains transcript-level abundance estimates.
 
 ### Example kallisto output
+[(Back to top)](#top)
+
 | target_id | length | eff_length | est_counts | tpm |
 |---|---:|---:|---:|---:|
 | ENST00000456328.2\|ENSG00000223972.5\|OTTHUMG00000000961.2\|OTTHUMT00000362751.1\|DDX11L1-202\|DDX11L1\|1657\|processed_transcript\| | 1657 | 1258 | 0 | 0 |
@@ -1046,6 +1081,7 @@ After preprocessing and expression quantification, the RNA-seq data can be impor
 - pathway and gene-set analysis.
 
 ### Install required R packages
+[(Back to top)](#top)
 
 Install the required CRAN packages:
 
@@ -1104,6 +1140,7 @@ library(org.Hs.eg.db)
 ```
 
 ### 3.1. Import data to R
+[(Back to top)](#top)
 
 To begin the downstream analysis, import the gene expression estimates generated by **RSEM** for all 25 samples.
 
@@ -1167,6 +1204,7 @@ ENSG00000000938.13_FGR             6.80       2.60       1.91       2.05       2
 > **Note:** TPM values are useful for exploratory analyses, visualization, clustering, and comparison of relative expression patterns. For differential expression analysis with **DESeq2**, count-based expression estimates should be used instead of TPM.
 
 ### Import sample metadata
+[(Back to top)](#top)
 
 In addition to the expression matrix, the corresponding sample metadata are required for downstream analyses.
 
@@ -1239,6 +1277,7 @@ dim(meta)
 The final metadata table contains **25 samples** and the following variables:
 
 ### Gene annotation with biomaRt
+[(Back to top)](#top)
 
 Remove the gene symbol appended by RSEM:
 
@@ -1293,6 +1332,7 @@ expr <- expr[
 ```
 
 ### Check expression matrix and gene annotation
+[(Back to top)](#top)
 
 Inspect the first rows of the expression matrix:
 
@@ -1458,6 +1498,7 @@ These plots help identify the large proportion of genes with very low expression
 
 
 ### Number of samples in which each gene is detected
+[(Back to top)](#top)
 
 In addition to the average expression level, we can examine how many samples each gene is detected in.
 
@@ -1499,6 +1540,7 @@ ggplot(data.frame(num_det), aes(x = num_det)) +
 This plot shows how consistently each gene is detected across the 25 samples and can help identify genes that are only expressed in a small number of samples.
 
 ### Filter unexpressed and lowly expressed genes
+[(Back to top)](#top)
 
 A gene is retained if it satisfies **at least one** of the following conditions:
 
@@ -1516,6 +1558,7 @@ Here:
 - `|` – means **OR**, so meeting either condition is sufficient.
 
 ### Gene biotype distribution
+[(Back to top)](#top)
 
 After filtering lowly expressed genes, the distribution of gene biotypes can be examined using the `gene_type` annotation.
 
@@ -1560,6 +1603,7 @@ meta_genes %>%
 <img width="1440" height="600" alt="image" src="https://github.com/user-attachments/assets/2d1214bf-8122-4a39-b4ff-817bc3face94" />
 
 ### Sample correlation and hierarchical clustering
+[(Back to top)](#top)
 
 Pairwise sample correlations were calculated using both **Pearson correlation** and **Spearman rank correlation**.
 
@@ -1681,6 +1725,7 @@ Samples with more similar transcriptomic profiles cluster closer together in the
 
 
 ### Hierarchical clustering with sample metadata
+[(Back to top)](#top)
 
 The Pearson- and Spearman-based dendrograms show similar clustering patterns. However, using only SRR accession numbers makes biological interpretation difficult.
 
@@ -1811,6 +1856,7 @@ These plots help determine whether the major transcriptomic similarities among s
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/9f846a87-3509-4802-86fd-697145dd6747" />
 
 ### Principal component analysis (PCA)
+[(Back to top)](#top)
 
 Another way to compare transcriptomic similarities between samples is through **dimension reduction**. PCA summarizes the expression profiles of thousands of genes into a smaller number of principal components (PCs), allowing the major sources of variation among samples to be visualized.
 
@@ -1832,6 +1878,7 @@ pca_df <- data.frame(
 ```
 
 ### Variance explained by principal components
+[(Back to top)](#top)
 
 ```r
 library(ggplot2)
@@ -1882,6 +1929,7 @@ The first principal components capture the largest proportions of transcriptomic
 
 
 ### PCA visualization with sample metadata
+[(Back to top)](#top)
 
 Calculate the percentage of variance explained by each PC:
 
@@ -2016,6 +2064,7 @@ In the PCA plot, samples positioned closer together have more similar overall tr
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/84790409-268d-4faf-abd2-568f92060a69" />
 
 #### Optional: Highly variable gene identification
+[(Back to top)](#top)
 
 Even after removing unexpressed and lowly expressed genes, the dataset still contains many genes. For an optional global analysis, we can further focus on **highly variable genes (HVGs)**, which show greater expression variability across samples than expected.
 
@@ -2092,6 +2141,7 @@ meta_genes$highvar <- meta_genes$rsem_id %in% highvar_ids
 - `highvar` – indicates whether each gene is classified as highly variable.
 
 ### Hierarchical clustering using highly variable genes
+[(Back to top)](#top)
 
 ```r
 library(ggplot2)
@@ -2231,6 +2281,7 @@ This optional analysis focuses the clustering on genes that contribute the stron
 
 
 ### PCA using highly variable genes
+[(Back to top)](#top)
 
 Perform PCA using only the highly variable genes:
 
@@ -2360,6 +2411,7 @@ Samples from the same individual may cluster together because of biological inte
 > **Note:** Batch correction should only be applied when the batch variable represents unwanted variation and is not confounded with the biological variable of interest. Here, `Layer` is preserved in the ComBat model. For differential expression analysis, it is generally preferable to account for `Individual` directly in the DESeq2 design rather than using batch-corrected expression values.
 
 ### ComBat correction
+[(Back to top)](#top)
 
 ```r
 library(sva)
@@ -2384,6 +2436,7 @@ expr_combat <- ComBat(
 ```
 
 ### Hierarchical clustering after batch correction
+[(Back to top)](#top)
 
 ```r
 corr_spearman_combat <- cor(
@@ -2500,6 +2553,7 @@ p_individual_combat + p_layer_combat
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/3ac29285-c69a-46ee-b012-c891bfc03821" />
 
 ### PCA after batch correction
+[(Back to top)](#top)
 
 Remove genes with zero or near-zero variance before PCA:
 
@@ -2686,6 +2740,7 @@ TRUE
 > **Note:** DESeq2 requires **raw/count-based expression values**, not TPM or FPKM.
 
 ### Create the DESeq2 dataset
+[(Back to top)](#top)
 
 ```r
 library(DESeq2)
@@ -2698,6 +2753,7 @@ dds <- DESeqDataSetFromMatrix(
 ```
 
 ### Filter low-count genes
+[(Back to top)](#top)
 
 Retain genes with at least **10 counts in at least 2 samples**:
 
@@ -2722,6 +2778,7 @@ dds <- DESeq(dds)
 ```
 
 ### Examine DESeq2 size factors
+[(Back to top)](#top)
 
 DESeq2 estimates a sample-specific size factor to normalize differences in sequencing depth and library composition.
 
@@ -2776,6 +2833,7 @@ ggplot(
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/1ca7ecda-61b4-4477-bf05-e958223991e5" />
 
 ### Extract differential expression results
+[(Back to top)](#top)
 
 Extract all `Layer` coefficients from the fitted DESeq2 model:
 
@@ -2968,6 +3026,7 @@ dim(expr)
 ```
 
 ### Identify genes associated with Layer
+[(Back to top)](#top)
 
 The full model is:
 
@@ -2999,6 +3058,7 @@ summary(res_DE)
 ```
 
 ### Calculate average expression across Layers
+[(Back to top)](#top)
 
 ```r
 layer_order <- c(
@@ -3073,6 +3133,7 @@ length(DEG)
 ```
 
 ### Group DEGs by the Layer with highest expression
+[(Back to top)](#top)
 
 ```r
 DEG <- intersect(
@@ -3124,6 +3185,7 @@ avg_expr_DEG_list <- lapply(
 ```
 
 ### Z-score normalization
+[(Back to top)](#top)
 
 Expression values are standardized within each gene to compare relative expression patterns across Layers.
 
@@ -3142,6 +3204,7 @@ scaled_expr_DEG_list <- lapply(
 ```
 
 ### Prepare data for visualization
+[(Back to top)](#top)
 
 ```r
 library(ggplot2)
@@ -3219,6 +3282,7 @@ group_labels <- setNames(
 ```
 
 ### Visualize Layer-specific DEG expression patterns
+[(Back to top)](#top)
 
 ```r
 ggplot(
@@ -3466,6 +3530,7 @@ Genes that show similar expression patterns across cortical Layers are positione
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/cda34245-b3de-47e4-a9af-f5d61d5651d7" />
 
 ### Cut the hierarchical tree into DEG clusters
+[(Back to top)](#top)
 
 The hierarchical DEG tree can be divided into a fixed number of clusters. Here, the dendrogram is cut into **15 expression-pattern clusters**.
 
@@ -3520,6 +3585,7 @@ scaled_expr_DEG_list <- lapply(
 ```
 
 ### Visualize DEG clusters using a correlation heatmap
+[(Back to top)](#top)
 
 ```r
 library(pheatmap)
@@ -3644,6 +3710,7 @@ Each block along the diagonal represents a group of DEGs with similar expression
 > **Note:** `k = 15` is a user-defined choice. Different values of `k` can be tested depending on the structure of the dendrogram and the desired level of cluster resolution.
 
 ### Visualize expression patterns of hierarchical DEG clusters
+[(Back to top)](#top)
 
 After cutting the dendrogram into 15 clusters, the average Layer expression profiles of genes within each cluster can be standardized using Z-scores.
 
@@ -3875,6 +3942,7 @@ Each panel represents one hierarchical DEG cluster. The boxplots show the distri
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/7723ef1f-c85c-472c-a616-f71be9766b7d" />
 
 ### Visualize DEG clusters in dendrogram order
+[(Back to top)](#top)
 
 The cluster numbers assigned by `cutree()` do not necessarily follow their visual order in the hierarchical dendrogram. Therefore, the clusters can be reordered according to their positions in the tree.
 
@@ -4132,6 +4200,7 @@ ph <- pheatmap(
 ```
 
 ### Combine the heatmap and cluster expression profiles
+[(Back to top)](#top)
 
 ```r
 library(gridExtra)
@@ -4169,12 +4238,14 @@ The heatmap shows the similarity between DEG expression patterns, while the adja
 > In this workflow, hierarchical clustering of DEGs is used as the main approach for grouping genes. WGCNA is therefore considered an optional advanced analysis rather than a required step.
 
 ### 3.5. Making sense of the genes
+[(Back to top)](#top)
 
 After identifying groups of DEGs with distinct expression patterns across cortical layers, the next step is to investigate their biological meaning.
 
 This can be done using **enrichment analysis**, which tests whether genes in a given DEG cluster are over-represented in specific biological functions, processes, pathways, or cellular components.
 
 ### Prepare DEG clusters for enrichment analysis
+[(Back to top)](#top)
 
 Inspect the hierarchical cluster assignments:
 
@@ -4197,6 +4268,7 @@ sapply(
 ```
 
 ### Define the background gene universe
+[(Back to top)](#top)
 
 For over-representation analysis, the background should represent genes that were actually tested in the differential expression analysis.
 
@@ -4207,6 +4279,7 @@ universe_ensembl <- rownames(res_DE)[
 ```
 
 ### Clean Ensembl gene IDs
+[(Back to top)](#top)
 
 The RSEM-derived gene IDs may contain Ensembl version numbers and appended gene symbols. These need to be removed before ID conversion.
 
@@ -4244,6 +4317,7 @@ head(
 ```
 
 ### Convert Ensembl IDs to Entrez IDs
+[(Back to top)](#top)
 
 ```r
 library(clusterProfiler)
@@ -4307,6 +4381,7 @@ universe_entrez <- unique(
 ```
 
 ### Check ID mapping efficiency
+[(Back to top)](#top)
 
 Before performing enrichment analysis, check how many genes in each cluster were successfully mapped.
 
