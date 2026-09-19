@@ -2767,3 +2767,179 @@ ggplot(
 
   theme_minimal(base_size = 14)
 ```
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/1ca7ecda-61b4-4477-bf05-e958223991e5" />
+
+### Extract differential expression results
+
+Extract all `Layer` coefficients from the fitted DESeq2 model:
+
+```r
+res_all <- lapply(
+  resultsNames(dds)[grepl("^Layer_", resultsNames(dds))],
+  function(x) {
+    as.data.frame(
+      results(dds, name = x)
+    )
+  }
+)
+
+names(res_all) <- resultsNames(dds)[
+  grepl("^Layer_", resultsNames(dds))
+]
+```
+
+Combine the results into a single table:
+
+```r
+library(dplyr)
+
+res_all_df <- bind_rows(
+  lapply(
+    names(res_all),
+    function(nm) {
+
+      df <- as.data.frame(
+        res_all[[nm]]
+      )
+
+      df$gene <- rownames(df)
+      df$contrast <- nm
+
+      df
+    }
+  )
+)
+```
+
+Save the results:
+
+```r
+write.csv(
+  res_all_df,
+  file = "DESeq2_all_contrasts.csv",
+  row.names = FALSE
+)
+```
+
+> **Note:** `resultsNames(dds)` returns the model coefficients relative to the reference level of `Layer`. Specific pairwise comparisons can be obtained separately using `contrast`.
+
+### Example: L6 vs L1
+
+```r
+res_L6_L1 <- results(
+  dds,
+  contrast = c(
+    "Layer",
+    "L6",
+    "L1"
+  ),
+  alpha = 0.05
+)
+
+res_df <- as.data.frame(
+  res_L6_L1
+)
+
+res_df$gene <- rownames(
+  res_df
+)
+```
+
+Remove genes with missing adjusted p-values:
+
+```r
+res_df <- res_df[
+  !is.na(res_df$padj),
+]
+```
+
+Classify genes as upregulated, downregulated, or non-significant:
+
+```r
+res_df$status <- "NS"
+
+res_df$status[
+  res_df$padj < 0.05 &
+  res_df$log2FoldChange >= 1
+] <- "Up"
+
+res_df$status[
+  res_df$padj < 0.05 &
+  res_df$log2FoldChange <= -1
+] <- "Down"
+
+table(res_df$status)
+```
+
+Differentially expressed genes are defined using:
+
+- `padj < 0.05`
+- `log2FoldChange ≥ 1` for **Up**
+- `log2FoldChange ≤ -1` for **Down**
+
+### Volcano plot
+
+```r
+library(ggplot2)
+
+ggplot(
+  res_df,
+  aes(
+    x = log2FoldChange,
+    y = -log10(padj),
+    color = status
+  )
+) +
+
+  geom_point(
+    alpha = 0.7,
+    size = 2
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "Up" = "#E76F51",
+      "Down" = "#457B9D",
+      "NS" = "grey75"
+    )
+  ) +
+
+  geom_vline(
+    xintercept = c(-1, 1),
+    linetype = "dashed",
+    color = "grey40"
+  ) +
+
+  geom_hline(
+    yintercept = -log10(0.05),
+    linetype = "dashed",
+    color = "grey40"
+  ) +
+
+  labs(
+    title = "Volcano plot: L6 vs L1",
+    x = "log2 Fold Change",
+    y = "-log10 adjusted p-value",
+    color = NULL
+  ) +
+
+  theme_minimal(
+    base_size = 14
+  ) +
+
+  theme(
+    aspect.ratio = 1,
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 17
+    ),
+    axis.title = element_text(
+      face = "bold"
+    ),
+    panel.grid.minor = element_blank()
+  )
+```
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/52757856-3170-4e76-bd3f-e44c9b900129" />
+
+
