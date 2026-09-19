@@ -2009,4 +2009,340 @@ ggplot(
 In the PCA plot, samples positioned closer together have more similar overall transcriptomic profiles. Colors represent cortical `Layer`, while point shapes represent `Individual`.
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/84790409-268d-4faf-abd2-568f92060a69" />
 
+#### Optional: Highly variable gene identification
+
+Even after removing unexpressed and lowly expressed genes, the dataset still contains many genes. For an optional global analysis, we can further focus on **highly variable genes (HVGs)**, which show greater expression variability across samples than expected.
+
+### Estimate gene variability
+
+```r
+estimate_variability <- function(expr){
+
+  means <- apply(expr, 1, mean)
+  vars  <- apply(expr, 1, var)
+
+  cv2 <- vars / means^2
+
+  minMeanForFit <- unname(
+    median(means[which(cv2 > 0.3)])
+  )
+
+  useForFit <- means >= minMeanForFit
+
+  fit <- glm.fit(
+    x = cbind(
+      a0 = 1,
+      a1tilde = 1 / means[useForFit]
+    ),
+    y = cv2[useForFit],
+    family = Gamma(link = "identity")
+  )
+
+  a0 <- unname(fit$coefficients["a0"])
+  a1 <- unname(fit$coefficients["a1tilde"])
+
+  df <- ncol(expr) - 1
+
+  afit <- a1 / means + a0
+
+  varFitRatio <- vars / (afit * means^2)
+
+  pval <- pchisq(
+    varFitRatio * df,
+    df = df,
+    lower.tail = FALSE
+  )
+
+  res <- data.frame(
+    mean = means,
+    var = vars,
+    cv2 = cv2,
+    useForFit = useForFit,
+    pval = pval,
+    padj = p.adjust(
+      pval,
+      method = "BH"
+    ),
+    row.names = rownames(expr)
+  )
+
+  return(res)
+}
+```
+
+Since lowly expressed genes were already filtered, variability can be estimated directly from the filtered expression matrix:
+
+```r
+var_genes <- estimate_variability(expr)
+
+highvar_ids <- rownames(var_genes)[
+  var_genes$padj < 0.01
+]
+
+meta_genes$highvar <- meta_genes$rsem_id %in% highvar_ids
+```
+
+- `padj < 0.01` – identifies genes with significantly higher variability than expected.
+- `highvar` – indicates whether each gene is classified as highly variable.
+
+### Hierarchical clustering using highly variable genes
+
+```r
+library(ggplot2)
+library(ggdendro)
+library(patchwork)
+
+expr_highvar <- expr[
+  meta_genes$highvar,
+  ,
+  drop = FALSE
+]
+
+corr_spearman_highvar <- cor(
+  expr_highvar,
+  method = "spearman"
+)
+
+hcl_spearman_highvar <- hclust(
+  as.dist(
+    1 - corr_spearman_highvar
+  )
+)
+```
+
+Visualize the clustering with metadata labels:
+
+```r
+plot_dendro_highvar <- function(
+  hcl,
+  meta,
+  label_var,
+  title,
+  line_color
+){
+
+  dend <- ggdendro::dendro_data(hcl)
+
+  labels_df <- dend$labels
+
+  labels_df$display_label <- meta[[label_var]][
+    match(
+      labels_df$label,
+      meta$Run
+    )
+  ]
+
+  ggplot() +
+
+    geom_segment(
+      data = dend$segments,
+      aes(
+        x = x,
+        y = y,
+        xend = xend,
+        yend = yend
+      ),
+      color = line_color,
+      linewidth = 0.9
+    ) +
+
+    geom_text(
+      data = labels_df,
+      aes(
+        x = x,
+        y = y,
+        label = display_label
+      ),
+      angle = 60,
+      hjust = 1,
+      size = 4,
+      fontface = "bold"
+    ) +
+
+    labs(
+      title = title,
+      x = NULL,
+      y = "1 − Spearman correlation"
+    ) +
+
+    scale_y_continuous(
+      expand = expansion(
+        mult = c(0.18, 0.05)
+      )
+    ) +
+
+    theme_minimal(base_size = 13) +
+
+    theme(
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = 15
+      ),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.title.y = element_text(
+        face = "bold"
+      ),
+      panel.grid = element_blank(),
+      plot.margin = margin(
+        10,
+        15,
+        35,
+        15
+      )
+    )
+}
+```
+
+```r
+p_individual <- plot_dendro_highvar(
+  hcl_spearman_highvar,
+  meta,
+  "Individual",
+  "Highly Variable Genes: Individual",
+  "#5FA8B0"
+)
+
+p_layer <- plot_dendro_highvar(
+  hcl_spearman_highvar,
+  meta,
+  "Layer",
+  "Highly Variable Genes: Layer",
+  "#9C7BC0"
+)
+
+options(
+  repr.plot.width = 14,
+  repr.plot.height = 6
+)
+
+p_individual + p_layer
+```
+
+This optional analysis focuses the clustering on genes that contribute the strongest variation across samples, which can make major transcriptomic patterns easier to identify.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/b6e0ce6b-df05-494d-922d-cd6a4264d25d" />
+
+
+### PCA using highly variable genes
+
+Perform PCA using only the highly variable genes:
+
+```r
+pca_highvar <- prcomp(
+  log1p(t(expr_highvar)),
+  center = TRUE,
+  scale. = TRUE
+)
+```
+
+Calculate the proportion of variance explained:
+
+```r
+var_highvar <- (
+  pca_highvar$sdev^2 /
+  sum(pca_highvar$sdev^2)
+) * 100
+```
+
+Combine the PCA coordinates with sample metadata:
+
+```r
+pca_highvar_df <- data.frame(
+  pca_highvar$x,
+  meta
+)
+```
+
+Visualize the first two principal components:
+
+```r
+ggplot(
+  pca_highvar_df,
+  aes(
+    x = PC1,
+    y = PC2,
+    color = Layer,
+    shape = Individual
+  )
+) +
+
+  geom_point(
+    size = 5.8,
+    alpha = 1,
+    stroke = 1.2
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "L1" = "#5FA8B0",
+      "L2" = "#6D9EEB",
+      "L3" = "#8E6BBE",
+      "L4" = "#E595B5",
+      "L5" = "#D95D8A",
+      "L6" = "#C98C1E",
+      "WM" = "#5DAA72"
+    )
+  ) +
+
+  scale_shape_manual(
+    values = c(
+      "DS1_H1" = 16,
+      "DS1_H2" = 17,
+      "DS1_H3" = 15,
+      "DS1_H4" = 3
+    )
+  ) +
+
+  labs(
+    title = "PCA of Highly Variable Genes",
+    x = paste0(
+      "PC1 (",
+      round(var_highvar[1], 1),
+      "%)"
+    ),
+    y = paste0(
+      "PC2 (",
+      round(var_highvar[2], 1),
+      "%)"
+    ),
+    color = "Layer",
+    shape = "Individual"
+  ) +
+
+  theme_minimal(base_size = 14) +
+
+  theme(
+    aspect.ratio = 1,
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 18
+    ),
+    axis.title = element_text(
+      face = "bold",
+      size = 15
+    ),
+    axis.text = element_text(size = 12),
+    legend.title = element_text(
+      face = "bold",
+      size = 14
+    ),
+    legend.text = element_text(size = 12),
+    panel.grid.minor = element_blank()
+  ) +
+
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 6)
+    ),
+    shape = guide_legend(
+      override.aes = list(
+        size = 6,
+        color = "black"
+      )
+    )
+  )
+```
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/ab6cde3c-0e4b-4ef7-832d-35e3c445faa5" />
 
