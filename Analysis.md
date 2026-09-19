@@ -1509,4 +1509,45 @@ Here:
 - `rowMeans(expr) >= 1` – retains genes with a **mean TPM ≥ 1** across all samples.
 - `|` – means **OR**, so meeting either condition is sufficient.
 
-The `|` operator means **OR**, so a gene is retained if either condition is satisfied.
+### Gene biotype distribution
+
+After filtering lowly expressed genes, the distribution of gene biotypes can be examined using the `gene_type` annotation.
+
+```r
+meta_genes <- meta_genes[
+  expressed,
+  ,
+  drop = FALSE
+]
+
+meta_genes %>%
+  count(gene_type, sort = TRUE) %>%
+  slice_head(n = 15) %>%
+  ggplot(aes(
+    x = reorder(gene_type, n),
+    y = n
+  )) +
+  geom_col(
+    width = 0.75,
+    fill = "#6C5CE7"
+  ) +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Number of genes",
+    title = "Gene biotype distribution"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    )
+  )
+```
+
+- `count(gene_type, sort = TRUE)` – counts genes in each biotype.
+- `slice_head(n = 15)` – keeps the 15 most abundant gene biotypes.
+- `coord_flip()` – displays the bar plot horizontally for easier reading.
