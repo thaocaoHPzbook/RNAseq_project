@@ -2942,4 +2942,371 @@ ggplot(
 ```
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/52757856-3170-4e76-bd3f-e44c9b900129" />
 
+### Grouping of the identified DEGs
+
+The identified DEGs are unlikely to represent a single biological pattern. Different groups of genes may show distinct expression profiles across cortical layers.
+
+Here, DEGs are first identified using a **likelihood ratio test (LRT)** to detect genes whose expression varies across `Layer` after accounting for `Individual`. The DEGs are then grouped according to the layer in which they show the highest average expression.
+
+### Obtain normalized counts
+
+Normalized DESeq2 counts are used for grouping and visualization.
+
+```r
+expr <- counts(
+  dds,
+  normalized = TRUE
+)
+
+dim(expr)
+```
+
+### Identify genes associated with Layer
+
+The full model is:
+
+```text
+~ Individual + Layer
+```
+
+and the reduced model is:
+
+```text
+~ Individual
+```
+
+The LRT therefore tests whether including `Layer` significantly improves the model.
+
+```r
+dds_lrt <- DESeq(
+  dds,
+  test = "LRT",
+  reduced = ~ Individual
+)
+
+res_DE <- results(
+  dds_lrt,
+  alpha = 0.05
+)
+
+summary(res_DE)
+```
+
+### Calculate average expression across Layers
+
+```r
+layer_order <- c(
+  "L1",
+  "L2",
+  "L3",
+  "L4",
+  "L5",
+  "L6",
+  "WM"
+)
+
+meta$Layer <- factor(
+  meta$Layer,
+  levels = layer_order
+)
+
+meta <- meta[
+  colnames(expr),
+  ,
+  drop = FALSE
+]
+
+log_expr <- log2(
+  expr + 1
+)
+
+avg_log_expr <- sapply(
+  layer_order,
+  function(layer) {
+
+    rowMeans(
+      log_expr[
+        ,
+        meta$Layer == layer,
+        drop = FALSE
+      ]
+    )
+  }
+)
+```
+
+Calculate the maximum change in average log2 expression across Layers:
+
+```r
+max_log2_change <- apply(
+  avg_log_expr,
+  1,
+  function(x) {
+    max(x) - min(x)
+  }
+)
+```
+
+### Define DEGs
+
+Genes are retained if:
+
+- `padj < 0.05`
+- maximum difference in average log2 expression across Layers is at least `1`
+
+```r
+DEG <- rownames(res_DE)[
+  !is.na(res_DE$padj) &
+  res_DE$padj < 0.05 &
+  max_log2_change[
+    rownames(res_DE)
+  ] >= 1
+]
+
+length(DEG)
+```
+
+### Group DEGs by the Layer with highest expression
+
+```r
+DEG <- intersect(
+  DEG,
+  rownames(avg_log_expr)
+)
+
+max_layer_DEG <- setNames(
+  colnames(avg_log_expr)[
+    apply(
+      avg_log_expr[
+        DEG,
+        ,
+        drop = FALSE
+      ],
+      1,
+      which.max
+    )
+  ],
+  DEG
+)
+```
+
+Check the number of genes assigned to each Layer:
+
+```r
+table(max_layer_DEG)
+```
+
+Create expression matrices for each DEG group:
+
+```r
+DEG_groups <- split(
+  names(max_layer_DEG),
+  max_layer_DEG
+)
+
+avg_expr_DEG_list <- lapply(
+  DEG_groups,
+  function(genes) {
+
+    avg_log_expr[
+      genes,
+      ,
+      drop = FALSE
+    ]
+  }
+)
+```
+
+### Z-score normalization
+
+Expression values are standardized within each gene to compare relative expression patterns across Layers.
+
+```r
+scaled_expr_DEG_list <- lapply(
+  avg_expr_DEG_list,
+  function(x) {
+
+    t(
+      scale(
+        t(x)
+      )
+    )
+  }
+)
+```
+
+### Prepare data for visualization
+
+```r
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+plot_df <- bind_rows(
+  lapply(
+    names(scaled_expr_DEG_list),
+    function(g) {
+
+      x <- as.data.frame(
+        scaled_expr_DEG_list[[g]]
+      )
+
+      x$gene <- rownames(x)
+
+      x %>%
+        pivot_longer(
+          cols = all_of(layer_order),
+          names_to = "Layer",
+          values_to = "Zscore"
+        ) %>%
+        mutate(
+          Group = g
+        )
+    }
+  )
+)
+
+plot_df$Layer <- factor(
+  plot_df$Layer,
+  levels = layer_order
+)
+
+plot_df$Group <- factor(
+  plot_df$Group,
+  levels = layer_order
+)
+```
+
+Define colors:
+
+```r
+pastel_cols <- c(
+  L1 = "#F4C7C3",
+  L2 = "#FAD9B5",
+  L3 = "#F6E6A6",
+  L4 = "#CDE8C9",
+  L5 = "#BFDDE8",
+  L6 = "#D1C7E8",
+  WM = "#E5C3DB"
+)
+```
+
+Add the number of genes to each group label:
+
+```r
+group_n <- plot_df %>%
+  distinct(
+    Group,
+    gene
+  ) %>%
+  count(Group)
+
+group_labels <- setNames(
+  paste0(
+    group_n$Group,
+    " (n=",
+    group_n$n,
+    ")"
+  ),
+  group_n$Group
+)
+```
+
+### Visualize Layer-specific DEG expression patterns
+
+```r
+ggplot(
+  plot_df,
+  aes(
+    x = Layer,
+    y = Zscore,
+    fill = Layer
+  )
+) +
+
+  geom_boxplot(
+    width = 0.68,
+    outlier.alpha = 0.15,
+    linewidth = 0.35
+  ) +
+
+  stat_summary(
+    aes(group = 1),
+    fun = mean,
+    geom = "line",
+    linewidth = 0.7,
+    color = "#555555"
+  ) +
+
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 1.8,
+    color = "#333333"
+  ) +
+
+  facet_wrap(
+    ~ Group,
+    ncol = 4,
+    scales = "fixed",
+    labeller = as_labeller(
+      group_labels
+    )
+  ) +
+
+  scale_fill_manual(
+    values = pastel_cols
+  ) +
+
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.35,
+    color = "grey60"
+  ) +
+
+  labs(
+    x = "Layer",
+    y = "Expression Z-score",
+    title = "Expression patterns of layer-specific DEG groups"
+  ) +
+
+  theme_classic(
+    base_size = 12
+  ) +
+
+  theme(
+    legend.position = "none",
+
+    strip.background = element_rect(
+      fill = "#F4F4F4",
+      color = NA
+    ),
+
+    strip.text = element_text(
+      face = "bold",
+      size = 11
+    ),
+
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      size = 14,
+      hjust = 0.5
+    ),
+
+    panel.spacing = unit(
+      1,
+      "lines"
+    )
+  )
+```
+
+Each DEG is assigned to the Layer in which its **average log2 normalized expression is highest**, producing Layer-associated expression groups that can later be analyzed separately for functional enrichment.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/f1ea0a74-e2ca-4cd1-a995-88e3b389abf9" />
+
 
