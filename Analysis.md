@@ -1227,15 +1227,61 @@ dim(meta)
 ```
 
 ```text
-[1] 25 5
+25 5
 ```
 
 The final metadata table contains **25 samples** and the following variables:
 
-```text
-Run
-Individual
-Age
-Sample
-Layer
+### Gene annotation with biomaRt
+
+Remove the gene symbol appended by RSEM:
+
+```r
+rownames(expr) <- sub("_.*$", "", rownames(expr))
+```
+
+Retrieve gene annotation from Ensembl:
+
+```r
+library(biomaRt)
+library(dplyr)
+
+ensembl <- useEnsembl(
+  biomart = "genes",
+  dataset = "hsapiens_gene_ensembl"
+)
+
+meta_genes <- getBM(
+  attributes = c(
+    "ensembl_gene_id",
+    "ensembl_gene_id_version",
+    "hgnc_symbol",
+    "description",
+    "chromosome_name",
+    "start_position",
+    "end_position",
+    "strand"
+  ),
+  filters = "ensembl_gene_id_version",
+  values = rownames(expr),
+  mart = ensembl
+) %>%
+  right_join(
+    data.frame(
+      ensembl_gene_id_version = rownames(expr)
+    ),
+    by = "ensembl_gene_id_version"
+  ) %>%
+  distinct(
+    ensembl_gene_id_version,
+    .keep_all = TRUE
+  )
+```
+
+Match the expression matrix to the annotation table:
+
+```r
+expr <- expr[
+  meta_genes$ensembl_gene_id_version,
+]
 ```
