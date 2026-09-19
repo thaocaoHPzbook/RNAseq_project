@@ -1317,3 +1317,135 @@ head(meta_genes)
 | ENSG00000000419.14_DPM1 | ENSG00000000419.14 | DPM1 | protein_coding | chr20 | 50934867 | 50959140 | - | ENSG00000000419 |
 | ENSG00000000457.14_SCYL3 | ENSG00000000457.14 | SCYL3 | protein_coding | chr1 | 169849631 | 169894267 | - | ENSG00000000457 |
 | ENSG00000000460.17_C1orf112 | ENSG00000000460.17 | C1orf112 | protein_coding | chr1 | 169662007 | 169854080 | + | ENSG00000000460 |
+
+### Comparison of transcriptomic profiles across samples
+
+After importing the expression matrix into R, we can begin exploring the overall transcriptomic profiles across samples.
+
+The expression matrix contains **61,852 genes across 25 samples**. However, many annotated genes may have very low or no detectable expression in this dataset. Therefore, we first examine the distribution of the **mean TPM across all samples**.
+
+```r
+library(ggplot2)
+library(patchwork)
+
+avg_expr <- rowMeans(expr)
+
+df_expr <- data.frame(
+  avg_expr = avg_expr,
+  log_avg_expr = log10(avg_expr + 1)
+)
+
+p1 <- ggplot(df_expr, aes(x = avg_expr)) +
+  geom_histogram(
+    bins = 50,
+    fill = "#B8E0D2",
+    color = "#5C5C5C",
+    linewidth = 0.2
+  ) +
+  geom_vline(
+    xintercept = median(avg_expr),
+    linetype = "dashed",
+    color = "#7A7A7A"
+  ) +
+  labs(
+    title = "Distribution of mean\ngene expression",
+    x = "Mean TPM across samples",
+    y = "Number of genes"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 14,
+      margin = margin(b = 10)
+    ),
+    axis.title = element_text(face = "bold"),
+    plot.margin = margin(10, 15, 10, 15)
+  )
+
+p2 <- ggplot(df_expr, aes(x = log_avg_expr)) +
+  geom_histogram(
+    bins = 50,
+    fill = "#F6C6C6",
+    color = "#5C5C5C",
+    linewidth = 0.2
+  ) +
+  geom_vline(
+    xintercept = median(log10(avg_expr + 1)),
+    linetype = "dashed",
+    color = "#7A7A7A"
+  ) +
+  labs(
+    title = "Log-transformed\ndistribution",
+    x = expression(log[10]("Mean TPM + 1")),
+    y = "Number of genes"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 14,
+      margin = margin(b = 10)
+    ),
+    axis.title = element_text(face = "bold"),
+    plot.margin = margin(10, 15, 10, 15)
+  )
+
+options(repr.plot.width = 12, repr.plot.height = 5)
+
+p1 + p2
+```
+
+<img width="1440" height="600" alt="image" src="https://github.com/user-attachments/assets/98c31f6d-ef1b-408a-ab15-fccd7b872bad" />
+
+
+Because gene expression values are highly skewed, the distribution can also be visualized using log-transformed axes:
+
+```r
+ggplot(data.frame(avg_expr), aes(x = avg_expr)) +
+
+  geom_histogram(
+    bins = 50,
+    fill = "#B8D8E8",
+    color = "white",
+    linewidth = 0.3
+  ) +
+
+  scale_x_continuous(
+    breaks = c(0, 1, 10, 100, 1000, 10000, 20000),
+    trans = "log1p",
+    expand = c(0, 0)
+  ) +
+
+  scale_y_continuous(
+    trans = "log1p",
+    expand = c(0, 0)
+  ) +
+
+  labs(
+    title = "Distribution of Mean Gene Expression",
+    x = "Mean TPM across samples",
+    y = "Number of genes"
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 14
+    ),
+    axis.title = element_text(
+      face = "bold"
+    ),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 15, 10, 15)
+  )
+```
+<img width="1440" height="600" alt="image" src="https://github.com/user-attachments/assets/cddcc622-cf50-4a73-9cef-94957a271764" />
+
+
+These plots help identify the large proportion of genes with very low expression and provide a basis for defining expressed genes before downstream PCA, clustering, and other transcriptomic analyses.
