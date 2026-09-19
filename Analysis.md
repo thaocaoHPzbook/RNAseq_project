@@ -2632,7 +2632,7 @@ ggplot(
 ```
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/ace07b6f-4fc2-4ecb-b512-01c6def90456" />
 
-### Differential expression analysis
+### 3.3. Differential expression analysis - DESeq2
 [(Back to top)](#top)
 Differential expression analysis was performed using **DESeq2** with the raw count matrix.
 
