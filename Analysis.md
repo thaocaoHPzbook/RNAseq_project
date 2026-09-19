@@ -1872,6 +1872,8 @@ ggplot(pca_var_df, aes(x = PC, y = Proportion)) +
 ```
 
 The first principal components capture the largest proportions of transcriptomic variation, allowing the relationships among samples to be visualized in a low-dimensional space.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/58dca788-1043-4ca8-accf-981304e4940c" />
+
 
 ### PCA visualization with sample metadata
 
