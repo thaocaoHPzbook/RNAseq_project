@@ -4168,7 +4168,7 @@ The heatmap shows the similarity between DEG expression patterns, while the adja
 >
 > In this workflow, hierarchical clustering of DEGs is used as the main approach for grouping genes. WGCNA is therefore considered an optional advanced analysis rather than a required step.
 
-### Making sense of the genes
+### 3.5. Making sense of the genes
 
 After identifying groups of DEGs with distinct expression patterns across cortical layers, the next step is to investigate their biological meaning.
 
@@ -5064,4 +5064,80 @@ ggplot(
 - Larger absolute NES values indicate stronger normalized enrichment.
 
 > **Interpretation note:** Enrichment of an MSigDB C8 signature indicates similarity between the bulk RNA-seq transcriptional profile and a previously defined cell-type signature. It does not directly demonstrate a change in cell abundance.
+
+## 3.6. Other analyses
+
+The previous sections cover the most common RNA-seq analyses for comparing biological conditions and interpreting differential gene expression. However, RNA-seq data can also support several additional analyses depending on the biological question and experimental design.
+
+### 3.6.1. Transcriptome deconvolution
+
+Bulk RNA-seq measures the average transcriptomic signal from a mixture of different cell types. Therefore, observed expression differences may result from changes in cell-type composition, changes in gene expression within a cell type, or both.
+
+Transcriptome deconvolution methods estimate the relative proportions of different cell types in bulk RNA-seq samples using reference expression profiles from purified cells or single-cell RNA-seq data.
+
+Common approaches include:
+
+- CIBERSORT / CIBERSORTx
+- MuSiC
+- BisqueRNA
+- Other reference-based deconvolution methods
+
+In brain tissue, for example, deconvolution can be used to estimate the relative abundance of neurons, astrocytes, oligodendrocytes, microglia, and other cell populations.
+<img width="652" height="221" alt="image" src="https://github.com/user-attachments/assets/23f1e8a0-a156-4f88-bf84-1b14cbc7179e" />
+
+> **Note:** Deconvolution requires appropriate reference expression profiles. Estimated cell proportions should therefore be interpreted as computational estimates rather than direct cell counts.
+
+
+### 3.6.2. Alternative splicing and isoform analysis
+
+RNA-seq can also be used to investigate transcript-level variation and alternative splicing.
+
+Common alternative splicing events include:
+
+- Exon skipping
+- Alternative 5' splice sites
+- Alternative 3' splice sites
+- Mutually exclusive exons
+- Intron retention
+
+Short-read RNA-seq can detect splice junctions and estimate alternative exon usage, although reconstruction of complete transcript isoforms can be challenging.
+
+Common tools include:
+
+- rMATS
+- MAJIQ
+- SUPPA2
+- LeafCutter
+
+Transcript-level abundance estimated by tools such as RSEM or kallisto can also be used for isoform-level analyses.
+
+Long-read sequencing technologies such as PacBio Iso-Seq or Oxford Nanopore RNA sequencing are generally more suitable when accurate full-length transcript and isoform reconstruction is the primary objective.
+<img width="1280" height="250" alt="image" src="https://github.com/user-attachments/assets/c37843fd-af5f-438f-9bc3-a946c7d22447" />
+
+### 3.6.3. Gene fusion detection
+
+RNA-seq can also be used to identify **fusion transcripts**, which arise when sequences from two different genes become joined within the same RNA molecule.
+
+Fusion detection is particularly useful in cancer genomics, where structural rearrangements may generate oncogenic fusion genes.
+
+RNA-seq is especially informative because sequencing reads can directly support the fusion transcript through:
+
+- **split reads** spanning the fusion junction;
+- **discordant or spanning reads** supporting the two fusion partners;
+- recurrent junction evidence across multiple reads.
+
+Common tools include:
+
+- STAR-Fusion
+- Arriba
+- FusionCatcher
+- JAFFA
+
+For STAR-based workflows, fusion analysis can be performed by enabling chimeric read detection during alignment and then analyzing the resulting chimeric junctions with dedicated fusion-detection tools.
+<img width="370" height="250" alt="image" src="https://github.com/user-attachments/assets/6bfebb83-93ae-442c-af57-2260e396e604" />
+
+> **Note:** Fusion detection is usually performed only when the biological question suggests that gene rearrangements or fusion transcripts may be relevant, such as in cancer or rare genetic diseases.
+
+
+
 
