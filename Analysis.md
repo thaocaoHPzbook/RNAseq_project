@@ -1505,17 +1505,8 @@ expressed <- rowMeans(expr > 0) >= 0.5 |
 ```
 
 Here:
-
-```text
-rowMeans(expr > 0) >= 0.5
-```
-
-means that the gene is detected in at least half of the samples.
-
-```text
-rowMeans(expr) >= 1
-```
-
-means that the gene has an average expression level of at least 1 TPM across all samples.
+- `rowMeans(expr > 0) >= 0.5` – retains genes detected (`TPM > 0`) in at least **50% of samples**.
+- `rowMeans(expr) >= 1` – retains genes with a **mean TPM ≥ 1** across all samples.
+- `|` – means **OR**, so meeting either condition is sufficient.
 
 The `|` operator means **OR**, so a gene is retained if either condition is satisfied.
