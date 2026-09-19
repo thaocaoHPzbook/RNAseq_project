@@ -1449,3 +1449,73 @@ ggplot(data.frame(avg_expr), aes(x = avg_expr)) +
 
 
 These plots help identify the large proportion of genes with very low expression and provide a basis for defining expressed genes before downstream PCA, clustering, and other transcriptomic analyses.
+
+
+### Number of samples in which each gene is detected
+
+In addition to the average expression level, we can examine how many samples each gene is detected in.
+
+```r
+library(ggplot2)
+
+num_det <- rowSums(expr > 0)
+
+ggplot(data.frame(num_det), aes(x = num_det)) +
+
+  geom_histogram(
+    bins = 25,
+    fill = "#CDB4DB",
+    color = "white",
+    linewidth = 0.3
+  ) +
+
+  labs(
+    title = "Number of Samples in Which Each Gene Is Detected",
+    x = "Number of samples with TPM > 0",
+    y = "Number of genes"
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 14
+    ),
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 15, 10, 15)
+  )
+```
+<img width="1440" height="600" alt="image" src="https://github.com/user-attachments/assets/585943f4-0d77-4dae-847a-5f4283f20c1e" />
+
+This plot shows how consistently each gene is detected across the 25 samples and can help identify genes that are only expressed in a small number of samples.
+
+### Filter unexpressed and lowly expressed genes
+
+A gene is retained if it satisfies **at least one** of the following conditions:
+
+- `TPM > 0` in at least **50% of the samples**, or
+- the **mean TPM across all samples is ≥ 1**.
+
+```r
+expressed <- rowMeans(expr > 0) >= 0.5 |
+             rowMeans(expr) >= 1
+```
+
+Here:
+
+```text
+rowMeans(expr > 0) >= 0.5
+```
+
+means that the gene is detected in at least half of the samples.
+
+```text
+rowMeans(expr) >= 1
+```
+
+means that the gene has an average expression level of at least 1 TPM across all samples.
+
+The `|` operator means **OR**, so a gene is retained if either condition is satisfied.
