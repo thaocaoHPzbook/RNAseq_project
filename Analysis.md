@@ -1802,4 +1802,6 @@ p_individual + p_layer
 ```
 
 These plots help determine whether the major transcriptomic similarities among samples are associated with **individual differences** or **cortical layer**.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/9f846a87-3509-4802-86fd-697145dd6747" />
+
 
