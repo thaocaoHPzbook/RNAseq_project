@@ -1025,5 +1025,77 @@ Transcript-level estimates can later be summarized to the gene level using tools
 
 > **Important:** TPM values are useful for describing relative transcript abundance but should not be used directly as input for DESeq2 differential expression analysis. For DESeq2, kallisto quantifications can be imported and summarized using `tximport`.
 
+# 3. Analyze and compare RNA-seq data
+## Analyze and compare RNA-seq data
 
+After preprocessing and expression quantification, the RNA-seq data can be imported into **R** for downstream analyses, including:
+
+- data normalization and transformation;
+- sample-level quality assessment;
+- PCA and clustering;
+- batch-effect assessment;
+- differential expression analysis;
+- gene annotation;
+- functional enrichment analysis;
+- pathway and gene-set analysis.
+
+### Install required R packages
+
+Install the required CRAN packages:
+
+```r
+install.packages(c(
+  "tidyverse",
+  "ggrepel",
+  "pbapply",
+  "gplots",
+  "pheatmap",
+  "matrixStats",
+  "patchwork",
+  "msigdbr",
+  "WGCNA",
+  "BiocManager"
+))
+```
+
+Install the required Bioconductor packages:
+
+```r
+BiocManager::install(c(
+  "DESeq2",
+  "edgeR",
+  "limma",
+  "sva",
+  "biomaRt",
+  "AnnotationDbi",
+  "org.Hs.eg.db",
+  "tximport",
+  "apeglm",
+  "clusterProfiler",
+  "fgsea",
+  "EnhancedVolcano",
+  "ComplexHeatmap"
+))
+```
+
+Load the main packages:
+
+```r
+library(tidyverse)
+library(DESeq2)
+library(edgeR)
+library(limma)
+library(sva)
+library(biomaRt)
+library(tximport)
+library(ggrepel)
+library(pheatmap)
+library(matrixStats)
+library(msigdbr)
+library(clusterProfiler)
+library(fgsea)
+library(org.Hs.eg.db)
+```
+
+Mấy package quan trọng th
 
