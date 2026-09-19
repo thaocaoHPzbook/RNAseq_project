@@ -5143,6 +5143,10 @@ For STAR-based workflows, fusion analysis can be performed by enabling chimeric 
 
 > **Note:** Fusion detection is usually performed only when the biological question suggests that gene rearrangements or fusion transcripts may be relevant, such as in cancer or rare genetic diseases.
 
+## THE END
+
+---
+
 
 
 
