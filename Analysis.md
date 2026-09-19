@@ -1137,7 +1137,7 @@ dim(expr)
 ```
 
 ```text
-[1] 61852    25
+61852    25
 ```
 
 The resulting matrix contains **61,852 genes across 25 RNA-seq samples**.
