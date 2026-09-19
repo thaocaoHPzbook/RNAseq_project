@@ -2626,3 +2626,144 @@ ggplot(
 ```
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/ace07b6f-4fc2-4ecb-b512-01c6def90456" />
 
+### Differential expression analysis
+
+Differential expression analysis was performed using **DESeq2** with the raw count matrix.
+
+The model includes both `Individual` and `Layer`:
+
+```text
+~ Individual + Layer
+```
+
+This allows the effect of cortical layer to be evaluated while accounting for inter-individual variation.
+
+### Prepare sample metadata
+
+```r
+meta <- read.delim(
+  "meta_additional.tsv",
+  header = TRUE,
+  sep = "\t",
+  stringsAsFactors = FALSE
+)
+
+dim(meta)
+head(meta)
+colnames(meta)
+```
+
+Set the sample accession as row names:
+
+```r
+rownames(meta) <- meta$Run
+
+meta$Individual <- factor(meta$Individual)
+meta$Layer <- factor(meta$Layer)
+```
+
+Confirm that the metadata and count matrix have the same sample order:
+
+```r
+identical(
+  rownames(meta),
+  colnames(counts)
+)
+```
+
+The result should be:
+
+```text
+TRUE
+```
+
+> **Note:** DESeq2 requires **raw/count-based expression values**, not TPM or FPKM.
+
+### Create the DESeq2 dataset
+
+```r
+library(DESeq2)
+
+dds <- DESeqDataSetFromMatrix(
+  countData = counts,
+  colData = meta,
+  design = ~ Individual + Layer
+)
+```
+
+### Filter low-count genes
+
+Retain genes with at least **10 counts in at least 2 samples**:
+
+```r
+keep <- rowSums(
+  counts(dds) >= 10
+) >= 2
+
+table(keep)
+
+dds <- dds[
+  keep,
+]
+
+dds
+```
+
+### Run DESeq2
+
+```r
+dds <- DESeq(dds)
+```
+
+### Examine DESeq2 size factors
+
+DESeq2 estimates a sample-specific size factor to normalize differences in sequencing depth and library composition.
+
+```r
+sf_df <- data.frame(
+  Sample = names(sizeFactors(dds)),
+  SizeFactor = sizeFactors(dds)
+)
+
+head(sf_df)
+```
+
+Visualize the size factors:
+
+```r
+library(ggplot2)
+
+ggplot(
+  sf_df,
+  aes(
+    x = reorder(Sample, SizeFactor),
+    y = SizeFactor
+  )
+) +
+
+  geom_col() +
+
+  geom_text(
+    aes(
+      label = round(SizeFactor, 2)
+    ),
+    hjust = -0.1,
+    size = 3.5
+  ) +
+
+  geom_hline(
+    yintercept = 1,
+    linetype = "dashed",
+    color = "grey40"
+  ) +
+
+  coord_flip() +
+
+  labs(
+    title = "DESeq2 Size Factors",
+    x = "Sample",
+    y = "Size factor"
+  ) +
+
+  theme_minimal(base_size = 14)
+```
