@@ -3459,4 +3459,183 @@ ggplot(
 Genes that show similar expression patterns across cortical Layers are positioned closer together in the dendrogram and can subsequently be divided into expression clusters for downstream functional analysis.
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/cda34245-b3de-47e4-a9af-f5d61d5651d7" />
 
+### Cut the hierarchical tree into DEG clusters
+
+The hierarchical DEG tree can be divided into a fixed number of clusters. Here, the dendrogram is cut into **15 expression-pattern clusters**.
+
+```r
+k <- 15
+
+cl_DEG <- cutree(
+  hcl_DEG,
+  k = k
+)
+
+table(cl_DEG)
+```
+
+Check the cluster order along the dendrogram:
+
+```r
+unique(
+  cl_DEG[hcl_DEG$order]
+)
+```
+
+Create a list containing the average Layer expression matrix for each cluster:
+
+```r
+avg_expr_DEG_list <- tapply(
+  names(cl_DEG),
+  cl_DEG,
+  function(x) {
+    avg_expr[
+      x,
+      ,
+      drop = FALSE
+    ]
+  }
+)
+```
+
+Standardize the expression profile of each gene using Z-scores:
+
+```r
+scaled_expr_DEG_list <- lapply(
+  avg_expr_DEG_list,
+  function(x) {
+    t(
+      scale(
+        t(x)
+      )
+    )
+  }
+)
+```
+
+### Visualize DEG clusters using a correlation heatmap
+
+```r
+library(pheatmap)
+library(scales)
+
+# Colors for the 15 clusters
+cluster_cols <- hue_pal(
+  c = 100,
+  l = 65
+)(k)
+
+names(cluster_cols) <- as.character(
+  1:k
+)
+
+cluster_anno <- data.frame(
+  Cluster = factor(
+    cl_DEG,
+    levels = 1:k
+  )
+)
+
+rownames(cluster_anno) <- names(
+  cl_DEG
+)
+
+anno_cols <- list(
+  Cluster = cluster_cols
+)
+```
+
+Determine the gene order from the hierarchical clustering and identify the boundaries between clusters:
+
+```r
+ord <- hcl_DEG$order
+
+ordered_clusters <- cl_DEG[
+  ord
+]
+
+gaps_pos <- cumsum(
+  rle(
+    ordered_clusters
+  )$lengths
+)
+
+gaps_pos <- gaps_pos[
+  -length(gaps_pos)
+]
+```
+
+For visualization, correlation values are limited to the range `-0.7` to `0.7` to improve color contrast:
+
+```r
+corr_plot <- corr_DEG
+
+corr_plot[
+  corr_plot > 0.7
+] <- 0.7
+
+corr_plot[
+  corr_plot < -0.7
+] <- -0.7
+```
+
+Define the heatmap color scale:
+
+```r
+heat_cols <- colorRampPalette(
+  c(
+    "#2B6CB0",
+    "#8FBFE0",
+    "#F7F7F7",
+    "#F4A6B7",
+    "#C2185B"
+  )
+)(100)
+```
+
+Plot the DEG correlation heatmap:
+
+```r
+options(
+  repr.plot.width = 10,
+  repr.plot.height = 10
+)
+
+pheatmap(
+  corr_plot,
+
+  cluster_rows = hcl_DEG,
+  cluster_cols = hcl_DEG,
+
+  annotation_col = cluster_anno,
+  annotation_row = cluster_anno,
+  annotation_colors = anno_cols,
+
+  show_rownames = FALSE,
+  show_colnames = FALSE,
+
+  border_color = NA,
+
+  gaps_row = gaps_pos,
+  gaps_col = gaps_pos,
+
+  color = heat_cols,
+
+  breaks = seq(
+    -0.7,
+    0.7,
+    length.out = 101
+  ),
+
+  main = "Spearman correlation of hierarchical DEG clusters"
+)
+```
+
+Each block along the diagonal represents a group of DEGs with similar expression patterns across cortical Layers. The **15 clusters** can subsequently be analyzed separately to identify the biological pathways or functions associated with each expression pattern.
+<img width="1200" height="1200" alt="image" src="https://github.com/user-attachments/assets/ecbc4800-9572-4748-94ec-d285bf569813" />
+
+
+> **Note:** `k = 15` is a user-defined choice. Different values of `k` can be tested depending on the structure of the dendrogram and the desired level of cluster resolution.
+
+
 
