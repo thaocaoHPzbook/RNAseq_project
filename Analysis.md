@@ -2345,4 +2345,284 @@ ggplot(
   )
 ```
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/ab6cde3c-0e4b-4ef7-832d-35e3c445faa5" />
+Generally speaking, the transcriptomic similarity patterns don't change a lot even if we subset the genes to only the highly variable ones.
+
+#### Optional: Batch effect correction
+
+Samples from the same individual may cluster together because of biological inter-individual variation or technical batch effects. If `Individual` is considered an unwanted source of variation, **ComBat** can be used to correct the log-transformed expression matrix.
+
+> **Note:** Batch correction should only be applied when the batch variable represents unwanted variation and is not confounded with the biological variable of interest. Here, `Layer` is preserved in the ComBat model. For differential expression analysis, it is generally preferable to account for `Individual` directly in the DESeq2 design rather than using batch-corrected expression values.
+
+### ComBat correction
+
+```r
+library(sva)
+library(ggplot2)
+library(ggdendro)
+library(patchwork)
+
+expr_log <- log1p(expr)
+
+mod <- model.matrix(
+  ~ Layer,
+  data = meta
+)
+
+expr_combat <- ComBat(
+  dat = expr_log,
+  batch = meta$Individual,
+  mod = mod,
+  par.prior = TRUE,
+  prior.plots = FALSE
+)
+```
+
+### Hierarchical clustering after batch correction
+
+```r
+corr_spearman_combat <- cor(
+  expr_combat,
+  method = "spearman"
+)
+
+hcl_spearman_combat <- hclust(
+  as.dist(1 - corr_spearman_combat)
+)
+```
+
+```r
+plot_dendro_combat <- function(
+  hcl,
+  meta,
+  label_var,
+  title,
+  line_color
+) {
+
+  dend <- ggdendro::dendro_data(hcl)
+
+  labels_df <- dend$labels
+
+  labels_df$display_label <- meta[[label_var]][
+    match(
+      labels_df$label,
+      meta$Run
+    )
+  ]
+
+  ggplot() +
+
+    geom_segment(
+      data = dend$segments,
+      aes(
+        x = x,
+        y = y,
+        xend = xend,
+        yend = yend
+      ),
+      color = line_color,
+      linewidth = 0.9
+    ) +
+
+    geom_text(
+      data = labels_df,
+      aes(
+        x = x,
+        y = y,
+        label = display_label
+      ),
+      angle = 60,
+      hjust = 1,
+      size = 4,
+      fontface = "bold"
+    ) +
+
+    labs(
+      title = title,
+      x = NULL,
+      y = "1 − Spearman correlation"
+    ) +
+
+    scale_y_continuous(
+      expand = expansion(
+        mult = c(0.18, 0.05)
+      )
+    ) +
+
+    theme_minimal(base_size = 13) +
+
+    theme(
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = 15
+      ),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.title.y = element_text(
+        face = "bold"
+      ),
+      panel.grid = element_blank()
+    )
+}
+```
+
+```r
+p_individual_combat <- plot_dendro_combat(
+  hcl_spearman_combat,
+  meta,
+  "Individual",
+  "After ComBat: Individual Labels",
+  "#5FA8B0"
+)
+
+p_layer_combat <- plot_dendro_combat(
+  hcl_spearman_combat,
+  meta,
+  "Layer",
+  "After ComBat: Layer Labels",
+  "#8E6BBE"
+)
+
+options(
+  repr.plot.width = 14,
+  repr.plot.height = 6
+)
+
+p_individual_combat + p_layer_combat
+```
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/3ac29285-c69a-46ee-b012-c891bfc03821" />
+
+### PCA after batch correction
+
+Remove genes with zero or near-zero variance before PCA:
+
+```r
+gene_sd <- apply(
+  expr_combat,
+  1,
+  sd
+)
+
+keep_var <- is.finite(gene_sd) &
+            gene_sd > 1e-8
+
+expr_combat_pca <- expr_combat[
+  keep_var,
+  ,
+  drop = FALSE
+]
+```
+
+Run PCA:
+
+```r
+pca_combat <- prcomp(
+  t(expr_combat_pca),
+  center = TRUE,
+  scale. = TRUE
+)
+
+var_combat <- (
+  pca_combat$sdev^2 /
+  sum(pca_combat$sdev^2)
+) * 100
+
+pca_combat_df <- data.frame(
+  pca_combat$x,
+  meta
+)
+```
+
+Visualize the corrected transcriptomic profiles:
+
+```r
+ggplot(
+  pca_combat_df,
+  aes(
+    x = PC1,
+    y = PC2,
+    color = Layer,
+    shape = Individual
+  )
+) +
+
+  geom_point(
+    size = 5.8,
+    alpha = 1,
+    stroke = 1.2
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "L1" = "#5FA8B0",
+      "L2" = "#6D9EEB",
+      "L3" = "#8E6BBE",
+      "L4" = "#E595B5",
+      "L5" = "#D95D8A",
+      "L6" = "#C98C1E",
+      "WM" = "#5DAA72"
+    )
+  ) +
+
+  scale_shape_manual(
+    values = c(
+      "DS1_H1" = 16,
+      "DS1_H2" = 17,
+      "DS1_H3" = 15,
+      "DS1_H4" = 3
+    )
+  ) +
+
+  labs(
+    title = "PCA After Batch Correction",
+    x = paste0(
+      "PC1 (",
+      round(var_combat[1], 1),
+      "%)"
+    ),
+    y = paste0(
+      "PC2 (",
+      round(var_combat[2], 1),
+      "%)"
+    ),
+    color = "Layer",
+    shape = "Individual"
+  ) +
+
+  theme_minimal(base_size = 14) +
+
+  theme(
+    aspect.ratio = 1,
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 18
+    ),
+    axis.title = element_text(
+      face = "bold",
+      size = 15
+    ),
+    axis.text = element_text(size = 12),
+    legend.title = element_text(
+      face = "bold",
+      size = 14
+    ),
+    legend.text = element_text(size = 12),
+    panel.grid.minor = element_blank()
+  ) +
+
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 6)
+    ),
+    shape = guide_legend(
+      override.aes = list(
+        size = 6,
+        color = "black"
+      )
+    )
+  )
+```
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/ace07b6f-4fc2-4ecb-b512-01c6def90456" />
 
