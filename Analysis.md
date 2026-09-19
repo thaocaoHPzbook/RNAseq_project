@@ -3309,4 +3309,154 @@ ggplot(
 Each DEG is assigned to the Layer in which its **average log2 normalized expression is highest**, producing Layer-associated expression groups that can later be analyzed separately for functional enrichment.
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/f1ea0a74-e2ca-4cd1-a995-88e3b389abf9" />
 
+#### The most universal approach: clustering
+
+For multi-condition comparisons, DEGs can also be grouped according to the similarity of their expression patterns across conditions. Here, hierarchical clustering is performed using the average expression of each DEG across cortical layers.
+
+### Calculate average DEG expression across Layers
+
+```r
+layer_order <- c(
+  "L1", "L2", "L3",
+  "L4", "L5", "L6",
+  "WM"
+)
+
+meta$Layer <- factor(
+  meta$Layer,
+  levels = layer_order
+)
+
+# Ensure metadata follows the same sample order
+meta <- meta[
+  colnames(expr),
+  ,
+  drop = FALSE
+]
+
+stopifnot(
+  all(
+    rownames(meta) == colnames(expr)
+  )
+)
+
+# Average expression of each gene in each Layer
+avg_expr <- sapply(
+  layer_order,
+  function(layer) {
+
+    rowMeans(
+      expr[
+        ,
+        meta$Layer == layer,
+        drop = FALSE
+      ]
+    )
+  }
+)
+
+head(avg_expr)
+```
+
+Keep only the identified DEGs:
+
+```r
+DEG <- intersect(
+  DEG,
+  rownames(avg_expr)
+)
+
+avg_expr_DEG <- avg_expr[
+  DEG,
+  ,
+  drop = FALSE
+]
+
+dim(avg_expr_DEG)
+```
+
+### Calculate expression similarity between DEGs
+
+Spearman correlation is calculated between genes based on their expression patterns across the seven Layers.
+
+```r
+corr_DEG <- cor(
+  t(avg_expr_DEG),
+  method = "spearman"
+)
+```
+
+Convert correlation into distance:
+
+```r
+dist_DEG <- as.dist(
+  1 - corr_DEG
+)
+```
+
+Perform hierarchical clustering:
+
+```r
+hcl_DEG <- hclust(
+  dist_DEG,
+  method = "complete"
+)
+```
+
+### Visualize the DEG clustering dendrogram
+
+```r
+library(ggplot2)
+library(ggdendro)
+
+dend <- as.dendrogram(
+  hcl_DEG
+)
+
+ddata <- dendro_data(
+  dend,
+  type = "rectangle"
+)
+
+ggplot(
+  segment(ddata)
+) +
+
+  geom_segment(
+    aes(
+      x = x,
+      y = y,
+      xend = xend,
+      yend = yend
+    ),
+    linewidth = 0.3,
+    color = "#6A6A6A",
+    lineend = "round"
+  ) +
+
+  labs(
+    title = "Cluster Dendrogram",
+    x = NULL,
+    y = "Height"
+  ) +
+
+  theme_minimal(
+    base_size = 12
+  ) +
+
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(
+      face = "bold",
+      size = 14,
+      hjust = 0.5
+    )
+  )
+```
+
+Genes that show similar expression patterns across cortical Layers are positioned closer together in the dendrogram and can subsequently be divided into expression clusters for downstream functional analysis.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/cda34245-b3de-47e4-a9af-f5d61d5651d7" />
+
 
