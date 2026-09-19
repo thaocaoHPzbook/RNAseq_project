@@ -4154,5 +4154,202 @@ grid.arrange(
 The heatmap shows the similarity between DEG expression patterns, while the adjacent faceted plots summarize the Layer-specific expression profile of each hierarchical cluster.
 <img width="2160" height="960" alt="image" src="https://github.com/user-attachments/assets/03ae424d-316f-42ce-a49a-d2cd2c0ef0d3" />
 
+> **Note – Co-expression network analysis**
+>
+> Besides hierarchical clustering, gene expression patterns can also be explored using co-expression network approaches such as **WGCNA (Weighted Gene Co-expression Network Analysis)**.
+>
+> WGCNA constructs a weighted gene co-expression network from correlations between genes across samples and identifies groups of highly co-expressed genes, referred to as **modules**. These modules can subsequently be associated with biological traits, such as cortical `Layer`, and can also be used to identify potential hub genes.
+>
+> In this workflow, hierarchical clustering of DEGs is used as the main approach for grouping genes. WGCNA is therefore considered an optional advanced analysis rather than a required step.
+
+### Making sense of the genes
+
+After identifying groups of DEGs with distinct expression patterns across cortical layers, the next step is to investigate their biological meaning.
+
+This can be done using **enrichment analysis**, which tests whether genes in a given DEG cluster are over-represented in specific biological functions, processes, pathways, or cellular components.
+
+### Prepare DEG clusters for enrichment analysis
+
+Inspect the hierarchical cluster assignments:
+
+```r
+head(cl_DEG)
+```
+
+Split genes into separate lists according to their hierarchical cluster:
+
+```r
+gene_clusters <- split(
+  names(cl_DEG),
+  cl_DEG
+)
+
+sapply(
+  gene_clusters,
+  length
+)
+```
+
+### Define the background gene universe
+
+For over-representation analysis, the background should represent genes that were actually tested in the differential expression analysis.
+
+```r
+universe_ensembl <- rownames(res_DE)[
+  !is.na(res_DE$padj)
+]
+```
+
+### Clean Ensembl gene IDs
+
+The RSEM-derived gene IDs may contain Ensembl version numbers and appended gene symbols. These need to be removed before ID conversion.
+
+```r
+clean_ensembl <- function(x) {
+  sub("\\..*$", "", x)
+}
+```
+
+Clean the DEG cluster IDs:
+
+```r
+gene_clusters_clean <- lapply(
+  gene_clusters,
+  function(x) {
+    unique(
+      clean_ensembl(x)
+    )
+  }
+)
+```
+
+Clean the background gene IDs:
+
+```r
+universe_clean <- unique(
+  clean_ensembl(
+    universe_ensembl
+  )
+)
+
+head(
+  gene_clusters_clean[[1]]
+)
+```
+
+### Convert Ensembl IDs to Entrez IDs
+
+```r
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(dplyr)
+library(ggplot2)
+```
+
+Collect all Ensembl IDs that need to be converted:
+
+```r
+all_ensembl <- unique(
+  c(
+    unlist(
+      gene_clusters_clean
+    ),
+    universe_clean
+  )
+)
+```
+
+Map Ensembl IDs to Entrez IDs and gene symbols:
+
+```r
+id_map <- bitr(
+  all_ensembl,
+  fromType = "ENSEMBL",
+  toType = c(
+    "ENTREZID",
+    "SYMBOL"
+  ),
+  OrgDb = org.Hs.eg.db
+)
+```
+
+Convert the genes in each DEG cluster to Entrez IDs:
+
+```r
+gene_clusters_entrez <- lapply(
+  gene_clusters_clean,
+  function(g) {
+
+    unique(
+      id_map$ENTREZID[
+        id_map$ENSEMBL %in% g
+      ]
+    )
+  }
+)
+```
+
+Convert the background universe to Entrez IDs:
+
+```r
+universe_entrez <- unique(
+  id_map$ENTREZID[
+    id_map$ENSEMBL %in%
+      universe_clean
+  ]
+)
+```
+
+### Check ID mapping efficiency
+
+Before performing enrichment analysis, check how many genes in each cluster were successfully mapped.
+
+```r
+mapping_summary <- data.frame(
+  Cluster = names(
+    gene_clusters_clean
+  ),
+
+  Ensembl = sapply(
+    gene_clusters_clean,
+    length
+  ),
+
+  Entrez = sapply(
+    gene_clusters_entrez,
+    length
+  )
+)
+
+mapping_summary
+```
+
+The mapping efficiency of the background gene universe can also be checked:
+
+```r
+length(
+  universe_clean
+)
+
+length(
+  universe_entrez
+)
+```
+
+Calculate the percentage of background genes successfully mapped:
+
+```r
+round(
+  length(universe_entrez) /
+    length(universe_clean) *
+    100,
+  1
+)
+```
+
+> **Note:** A small number of unmapped genes is expected. However, a very low mapping rate may indicate that the input gene IDs were not cleaned or formatted correctly.
+
+The resulting `gene_clusters_entrez` and `universe_entrez` objects can then be used for downstream **GO enrichment analysis**.
+
 
 
