@@ -1,4 +1,4 @@
-
+<a id="top"></a>
 # Table of Contents
 
 - [1. Preparation](#1-preparation)
@@ -23,6 +23,7 @@
 
 # 1.Preparation
 ## 1.1.Software setup for RNA-seq preprocessing and analysis
+[(Back to top)](#top)
 ### 1.1.2. Install the required tools with the help from conda
 Now you have access to the server/cluster and hopefully also know the basics of using it via the command line. The next step is to set up the tools required for the following data preprocessing and analysis.
 
@@ -68,6 +69,7 @@ conda activate rnaseq
 ```
 
 ## 1.2. Get the public RNA-seq data from SRA
+[(Back to top)](#top)
 The dataset contains **25 RNA-seq samples** obtained from the NCBI Sequence Read Archive (SRA).  
 The corresponding SRA run accession numbers are stored in **SRR_Acc_List.txt**.
 
@@ -110,6 +112,7 @@ The final compressed FASTQ files will be stored in **rawdata/** folder.
 
 # 2. Preprocessing of RNA-seq data
 ## 2.1. Quality control of RNA-seq data
+[(Back to top)](#top)
 Before processing the RNA-seq data, the quality of the raw FASTQ files should be assessed.
 
 ### Run FastQC
@@ -240,7 +243,8 @@ Without UMI or other supporting evidence, identical reads cannot be reliably dis
 For this workflow, no deduplication step is performed unless a specific technical issue is identified.
 
 ## 2.2. Read mapping/pseudomapping and quantification
-2-2-1 Read mapping with STAR and data quantification
+[(Back to top)](#top)
+### 2-2-1 Read mapping with STAR and data quantification
 (Back to top)
 Once the quality of the data is confirmed, we need to convert those millions of reads per sample into the gene- or transcript-level quantification. This would need the assignment of reads to genes or transcripts. To do this, the mostly common first step is for each read, to look for the genomic region that match with the read, given the complete genomic sequences. The identified region is then most likely the region being transcribed and generate the sequenced read in the end. This step of looking for the matched genomic regions for reads is called read genome mapping or alignment.
 
@@ -895,7 +899,7 @@ RSEM estimates transcript abundance first and then summarizes transcript isoform
 > **Important:** TPM and FPKM should not be used directly as input for differential expression analysis with DESeq2. For differential expression, count-based expression estimates should be used instead. RSEM results can be imported into DESeq2 using tools such as `tximport`, while TPM can be used for expression visualization and descriptive comparisons.
 
 ## Transcript-level quantification with kallisto
-
+[(Back to top)](#top)
 In addition to genome alignment-based quantification using STAR/RSEM, RNA-seq expression can also be quantified using **kallisto**.
 
 Unlike STAR, which aligns reads to the reference genome, kallisto performs **pseudoalignment directly against the reference transcriptome**. Instead of determining the exact genomic alignment position of each read, kallisto identifies the set of transcripts that are compatible with the read sequence.
@@ -1029,8 +1033,8 @@ Transcript-level estimates can later be summarized to the gene level using tools
 > **Important:** TPM values are useful for describing relative transcript abundance but should not be used directly as input for DESeq2 differential expression analysis. For DESeq2, kallisto quantifications can be imported and summarized using `tximport`.
 
 # 3. Analyze and compare RNA-seq data
-## Analyze and compare RNA-seq data
-
+## 3.2. Analyze and compare RNA-seq data
+[(Back to top)](#top)
 After preprocessing and expression quantification, the RNA-seq data can be imported into **R** for downstream analyses, including:
 
 - data normalization and transformation;
@@ -2351,7 +2355,7 @@ ggplot(
 Generally speaking, the transcriptomic similarity patterns don't change a lot even if we subset the genes to only the highly variable ones.
 
 #### Optional: Batch effect correction
-
+[(Back to top)](#top)
 Samples from the same individual may cluster together because of biological inter-individual variation or technical batch effects. If `Individual` is considered an unwanted source of variation, **ComBat** can be used to correct the log-transformed expression matrix.
 
 > **Note:** Batch correction should only be applied when the batch variable represents unwanted variation and is not confounded with the biological variable of interest. Here, `Layer` is preserved in the ComBat model. For differential expression analysis, it is generally preferable to account for `Individual` directly in the DESeq2 design rather than using batch-corrected expression values.
@@ -2630,7 +2634,7 @@ ggplot(
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/ace07b6f-4fc2-4ecb-b512-01c6def90456" />
 
 ### Differential expression analysis
-
+[(Back to top)](#top)
 Differential expression analysis was performed using **DESeq2** with the raw count matrix.
 
 The model includes both `Individual` and `Layer`:
