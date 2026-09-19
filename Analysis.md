@@ -3637,5 +3637,235 @@ Each block along the diagonal represents a group of DEGs with similar expression
 
 > **Note:** `k = 15` is a user-defined choice. Different values of `k` can be tested depending on the structure of the dendrogram and the desired level of cluster resolution.
 
+### Visualize expression patterns of hierarchical DEG clusters
+
+After cutting the dendrogram into 15 clusters, the average Layer expression profiles of genes within each cluster can be standardized using Z-scores.
+
+```r
+DEG_groups <- split(
+  names(cl_DEG),
+  cl_DEG
+)
+
+avg_expr_DEG_list <- lapply(
+  DEG_groups,
+  function(x) {
+    avg_expr[
+      x,
+      ,
+      drop = FALSE
+    ]
+  }
+)
+
+scaled_expr_DEG_list <- lapply(
+  avg_expr_DEG_list,
+  function(x) {
+    t(
+      scale(
+        t(x)
+      )
+    )
+  }
+)
+```
+
+Prepare the data for visualization:
+
+```r
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+layer_order <- c(
+  "L1", "L2", "L3",
+  "L4", "L5", "L6",
+  "WM"
+)
+
+plot_df_hcl <- bind_rows(
+  lapply(
+    names(scaled_expr_DEG_list),
+    function(cl) {
+
+      x <- as.data.frame(
+        scaled_expr_DEG_list[[cl]]
+      )
+
+      x$gene <- rownames(x)
+
+      x %>%
+        pivot_longer(
+          cols = all_of(layer_order),
+          names_to = "Layer",
+          values_to = "Zscore"
+        ) %>%
+        mutate(
+          Cluster = as.integer(cl)
+        )
+    }
+  )
+)
+
+plot_df_hcl$Layer <- factor(
+  plot_df_hcl$Layer,
+  levels = layer_order
+)
+```
+
+Count the number of genes in each cluster and create facet labels:
+
+```r
+cluster_n <- plot_df_hcl %>%
+  distinct(
+    Cluster,
+    gene
+  ) %>%
+  count(Cluster)
+
+cluster_labels <- setNames(
+  paste0(
+    "Cluster ",
+    cluster_n$Cluster,
+    " (n=",
+    cluster_n$n,
+    ")"
+  ),
+  cluster_n$Cluster
+)
+
+cluster_n
+```
+
+Define Layer colors:
+
+```r
+pastel_cols <- c(
+  L1 = "#F4C7C3",
+  L2 = "#FAD9B5",
+  L3 = "#F6E6A6",
+  L4 = "#CDE8C9",
+  L5 = "#BFDDE8",
+  L6 = "#D1C7E8",
+  WM = "#E5C3DB"
+)
+```
+
+Order the clusters from 1 to 15:
+
+```r
+plot_df_hcl$Cluster <- factor(
+  plot_df_hcl$Cluster,
+  levels = 1:15
+)
+```
+
+Visualize the Layer-specific expression pattern of each hierarchical DEG cluster:
+
+```r
+options(
+  repr.plot.width = 16,
+  repr.plot.height = 10
+)
+
+p_cluster_number <- ggplot(
+  plot_df_hcl,
+  aes(
+    x = Layer,
+    y = Zscore,
+    fill = Layer
+  )
+) +
+
+  geom_boxplot(
+    width = 0.65,
+    linewidth = 0.3,
+    outlier.alpha = 0.10,
+    outlier.size = 0.6
+  ) +
+
+  stat_summary(
+    aes(group = 1),
+    fun = mean,
+    geom = "line",
+    linewidth = 0.7,
+    color = "#555555"
+  ) +
+
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    size = 1.7,
+    color = "#333333"
+  ) +
+
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.3,
+    color = "grey65"
+  ) +
+
+  facet_wrap(
+    ~ Cluster,
+    ncol = 5,
+    labeller = as_labeller(
+      cluster_labels
+    )
+  ) +
+
+  scale_fill_manual(
+    values = pastel_cols
+  ) +
+
+  labs(
+    title = "Expression patterns of hierarchical DEG clusters",
+    subtitle = "Clusters ordered by cluster number",
+    x = "Layer",
+    y = "Expression Z-score"
+  ) +
+
+  theme_classic(base_size = 12) +
+
+  theme(
+    legend.position = "none",
+
+    strip.background = element_rect(
+      fill = "#F3F3F3",
+      color = NA
+    ),
+
+    strip.text = element_text(
+      face = "bold",
+      size = 10
+    ),
+
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      size = 15,
+      hjust = 0.5
+    ),
+
+    plot.subtitle = element_text(
+      hjust = 0.5,
+      color = "grey40"
+    ),
+
+    panel.spacing = unit(
+      0.8,
+      "lines"
+    )
+  )
+
+p_cluster_number
+```
+
+Each panel represents one hierarchical DEG cluster. The boxplots show the distribution of gene-level Z-scores across Layers, while the line and points show the mean expression pattern of the cluster.
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/7723ef1f-c85c-472c-a616-f71be9766b7d" />
 
 
