@@ -1804,4 +1804,207 @@ p_individual + p_layer
 These plots help determine whether the major transcriptomic similarities among samples are associated with **individual differences** or **cortical layer**.
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/9f846a87-3509-4802-86fd-697145dd6747" />
 
+### Principal component analysis (PCA)
+
+Another way to compare transcriptomic similarities between samples is through **dimension reduction**. PCA summarizes the expression profiles of thousands of genes into a smaller number of principal components (PCs), allowing the major sources of variation among samples to be visualized.
+
+Since lowly expressed genes were already removed in the previous step, PCA is performed using the filtered expression matrix.
+
+```r
+# PCA using expressed genes
+pca <- prcomp(
+  log1p(t(expr)),
+  center = TRUE,
+  scale. = TRUE
+)
+
+pca_df <- data.frame(
+  Sample = rownames(pca$x),
+  PC1 = pca$x[, 1],
+  PC2 = pca$x[, 2]
+)
+```
+
+### Variance explained by principal components
+
+```r
+library(ggplot2)
+
+eigs <- pca$sdev^2
+prop_var <- eigs / sum(eigs)
+
+pca_var_df <- data.frame(
+  PC = seq_along(prop_var),
+  Proportion = prop_var
+)
+
+ggplot(pca_var_df, aes(x = PC, y = Proportion)) +
+  geom_line(
+    color = "#A8BFD1",
+    linewidth = 0.8
+  ) +
+  geom_point(
+    color = "#C8B6D9",
+    size = 2.8
+  ) +
+  scale_x_continuous(
+    breaks = c(5, 10, 15, 20, 25)
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 0.30, by = 0.05)
+  ) +
+  labs(
+    title = "PCA Variance Explained",
+    x = "PC",
+    y = "Proportion"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    aspect.ratio = 1,
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 14
+    ),
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+The first principal components capture the largest proportions of transcriptomic variation, allowing the relationships among samples to be visualized in a low-dimensional space.
+
+### PCA visualization with sample metadata
+
+Calculate the percentage of variance explained by each PC:
+
+```r
+var_explained <- (
+  pca$sdev^2 / sum(pca$sdev^2)
+) * 100
+```
+
+Ensure that the metadata and PCA samples are in the same order:
+
+```r
+stopifnot(
+  identical(
+    rownames(pca$x),
+    meta$Run
+  )
+)
+```
+
+Combine PCA coordinates with sample metadata:
+
+```r
+pca_df <- data.frame(
+  pca$x,
+  meta
+)
+```
+
+Visualize the first two principal components:
+
+```r
+library(ggplot2)
+
+ggplot(
+  pca_df,
+  aes(
+    x = PC1,
+    y = PC2,
+    color = Layer,
+    shape = Individual
+  )
+) +
+
+  geom_point(
+    size = 5.5,
+    alpha = 1,
+    stroke = 1.2
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "L1" = "#6FB7BE",
+      "L2" = "#7FAFE6",
+      "L3" = "#9C7BC0",
+      "L4" = "#E79BB7",
+      "L5" = "#E86F9C",
+      "L6" = "#D89B2D",
+      "WM" = "#76BE8B"
+    )
+  ) +
+
+  scale_shape_manual(
+    values = c(
+      "DS1_H1" = 16,
+      "DS1_H2" = 17,
+      "DS1_H3" = 15,
+      "DS1_H4" = 3
+    )
+  ) +
+
+  labs(
+    title = "PCA of Transcriptomic Profiles",
+    x = paste0(
+      "PC1 (",
+      round(var_explained[1], 1),
+      "%)"
+    ),
+    y = paste0(
+      "PC2 (",
+      round(var_explained[2], 1),
+      "%)"
+    ),
+    color = "Layer",
+    shape = "Individual"
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+    aspect.ratio = 1,
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 18
+    ),
+    axis.title = element_text(
+      face = "bold",
+      size = 15
+    ),
+    axis.text = element_text(
+      size = 12
+    ),
+    legend.title = element_text(
+      face = "bold",
+      size = 14
+    ),
+    legend.text = element_text(
+      size = 12
+    ),
+    legend.key.size = unit(
+      1.2,
+      "lines"
+    ),
+    panel.grid.minor = element_blank()
+  ) +
+
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 6)
+    ),
+    shape = guide_legend(
+      override.aes = list(
+        size = 6,
+        color = "black"
+      )
+    )
+  )
+```
+
+In the PCA plot, samples positioned closer together have more similar overall transcriptomic profiles. Colors represent cortical `Layer`, while point shapes represent `Individual`.
+<img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/84790409-268d-4faf-abd2-568f92060a69" />
+
 
