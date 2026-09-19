@@ -4462,5 +4462,600 @@ This allows the expression pattern of each DEG cluster to be connected with its 
 
 > **Note:** The same approach can also be applied to the other GO domains by changing `ont = "BP"` to `ont = "MF"` for Molecular Function or `ont = "CC"` for Cellular Component.
 
+#### KEGG, Reactome and MSigDB
 
+In addition to Gene Ontology, several pathway and gene-set databases can be used to interpret DEG clusters.
+
+- **KEGG (Kyoto Encyclopedia of Genes and Genomes)** provides curated molecular pathways describing interactions among genes, proteins, metabolites, and other biological components.
+- **Reactome** is an open-access pathway database containing manually curated biological reactions and pathways.
+- **MSigDB (Molecular Signatures Database)** contains a large collection of predefined gene sets, including curated pathways, functional signatures, and experimentally derived gene sets.
+
+These resources complement GO by providing pathway-level interpretations of DEG clusters.
+
+### KEGG pathway enrichment
+
+KEGG enrichment can be performed for all DEG clusters using `compareCluster()` together with `enrichKEGG()`.
+
+```r
+kegg_res <- compareCluster(
+  geneClusters = gene_clusters_entrez,
+  fun = "enrichKEGG",
+
+  organism = "hsa",
+
+  universe = universe_entrez,
+
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05,
+
+  minGSSize = 10,
+  maxGSSize = 500
+)
+```
+
+Here:
+
+- `organism = "hsa"` specifies *Homo sapiens*.
+- `gene_clusters_entrez` contains the Entrez IDs of genes in each DEG cluster.
+- `universe_entrez` defines the background genes tested in the differential expression analysis.
+- `pAdjustMethod = "BH"` applies Benjamini-Hochberg multiple-testing correction.
+
+### Inspect KEGG enrichment results
+
+```r
+kegg_df <- as.data.frame(
+  kegg_res
+)
+
+head(kegg_df)
+```
+
+The result contains enriched KEGG pathways for each DEG cluster together with their enrichment statistics.
+
+### Visualize KEGG pathway enrichment
+
+```r
+dotplot(
+  kegg_res,
+  showCategory = 5
+) +
+  ggtitle(
+    "KEGG pathway enrichment"
+  )
+```
+
+The plot displays the top enriched KEGG pathways within each hierarchical DEG cluster.
+<img width="1680" height="1800" alt="image" src="https://github.com/user-attachments/assets/f5ddfc28-9b52-4070-bbea-ea02ea3b66da" />
+
+
+> **Note:** GO and KEGG provide complementary biological interpretations. GO focuses mainly on functional annotations such as biological processes, molecular functions, and cellular components, whereas KEGG focuses more strongly on curated biological pathways and molecular systems.
+>
+> Additional pathway analyses can also be performed using **Reactome** or gene sets from **MSigDB** for broader functional interpretation.
+
+### Reactome pathway enrichment
+
+Reactome provides manually curated biological pathways and can be used as an additional pathway-level interpretation of the DEG clusters.
+
+Load the required package:
+
+```r
+library(ReactomePA)
+```
+
+Run Reactome pathway enrichment for all hierarchical DEG clusters:
+
+```r
+reactome_res <- compareCluster(
+  geneClusters = gene_clusters_entrez,
+  fun = "enrichPathway",
+
+  organism = "human",
+
+  universe = universe_entrez,
+
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05,
+
+  minGSSize = 10,
+  maxGSSize = 500
+)
+```
+
+Here:
+
+- `gene_clusters_entrez` contains the Entrez IDs for each DEG cluster.
+- `organism = "human"` specifies the human Reactome pathway database.
+- `universe_entrez` defines the background genes available for enrichment testing.
+- `pAdjustMethod = "BH"` controls the false discovery rate using the Benjamini-Hochberg method.
+
+### Inspect Reactome enrichment results
+
+```r
+reactome_df <- as.data.frame(
+  reactome_res
+)
+
+head(
+  reactome_df
+)
+```
+
+Each row represents a Reactome pathway enriched within one DEG cluster.
+
+### Visualize Reactome pathway enrichment
+
+```r
+dotplot(
+  reactome_res,
+  showCategory = 5
+) +
+  ggtitle(
+    "Reactome pathway enrichment"
+  )
+```
+
+The dot plot summarizes the top Reactome pathways enriched in each hierarchical DEG cluster.
+<img width="1680" height="1800" alt="image" src="https://github.com/user-attachments/assets/f0162515-438d-4bcf-9f63-b7690e0dd127" />
+
+> **Note:** KEGG and Reactome may identify overlapping biological processes, but their pathway definitions and curation strategies differ. Using both can provide complementary interpretations of the DEG clusters.
+
+### MSigDB enrichment analysis
+
+MSigDB provides collections of predefined gene sets that can be used to investigate biological signatures beyond conventional GO and pathway databases.
+
+Here, the **C8 collection** is used. C8 contains **cell type signature gene sets**, making it useful for exploring whether the transcriptional profile of a cortical Layer resembles signatures associated with particular cell populations.
+
+Unlike the previous GO, KEGG, and Reactome analyses, which used **over-representation analysis (ORA)** on predefined DEG clusters, this analysis uses **gene set enrichment analysis (GSEA)**. Therefore, all tested genes are ranked rather than first divided into significant and non-significant genes.
+
+### Define L4 versus other cortical Layers
+
+To investigate transcriptional signatures associated with Layer 4, samples are divided into:
+
+- `L4`
+- `Other` – all remaining Layers (`L1`, `L2`, `L3`, `L5`, `L6`, and `WM`)
+
+```r
+meta$L4_group <- ifelse(
+  meta$Layer == "L4",
+  "L4",
+  "Other"
+)
+
+meta$L4_group <- factor(
+  meta$L4_group,
+  levels = c(
+    "Other",
+    "L4"
+  )
+)
+
+table(
+  meta$L4_group
+)
+```
+
+### Differential expression for L4 versus Other Layers
+
+Inter-individual variation is included in the DESeq2 model:
+
+```r
+library(DESeq2)
+
+dds_L4 <- DESeqDataSetFromMatrix(
+  countData = counts,
+  colData = meta,
+  design = ~ Individual + L4_group
+)
+
+dds_L4 <- DESeq(
+  dds_L4
+)
+```
+
+Extract the `L4` versus `Other` comparison:
+
+```r
+DE_L4 <- results(
+  dds_L4,
+  contrast = c(
+    "L4_group",
+    "L4",
+    "Other"
+  )
+)
+
+DE_L4 <- as.data.frame(
+  DE_L4
+)
+
+DE_L4$gene <- rownames(
+  DE_L4
+)
+
+head(
+  DE_L4
+)
+```
+
+A positive `log2FoldChange` indicates higher expression in `L4`, whereas a negative value indicates higher expression in the other cortical Layers.
+
+### Clean Ensembl IDs
+
+Remove the Ensembl version suffix and appended gene symbol:
+
+```r
+DE_L4$ensembl <- sub(
+  "\\..*$",
+  "",
+  DE_L4$gene
+)
+```
+
+### Rank genes for GSEA
+
+For GSEA, genes should be ordered according to both the direction and strength of their association with the comparison.
+
+A convenient ranking score can be calculated as:
+
+```r
+DE_L4_rank <- DE_L4[
+  !is.na(DE_L4$pvalue) &
+  !is.na(DE_L4$log2FoldChange),
+]
+```
+
+```r
+DE_L4_rank$score <-
+  sign(
+    DE_L4_rank$log2FoldChange
+  ) *
+  (
+    -log10(
+      pmax(
+        DE_L4_rank$pvalue,
+        .Machine$double.xmin
+      )
+    )
+  )
+```
+
+Remove duplicated Ensembl IDs and retain one score per gene:
+
+```r
+library(dplyr)
+
+DE_L4_rank <- DE_L4_rank %>%
+  arrange(
+    desc(
+      abs(score)
+    )
+  ) %>%
+  distinct(
+    ensembl,
+    .keep_all = TRUE
+  )
+```
+
+Create the named ranked vector required by `fgsea`:
+
+```r
+scores <- setNames(
+  DE_L4_rank$score,
+  DE_L4_rank$ensembl
+)
+
+scores_ordered <- sort(
+  scores,
+  decreasing = TRUE
+)
+```
+
+> **Note:** Positive ranking scores correspond to genes associated with higher expression in `L4`, whereas negative scores correspond to genes associated with higher expression in the other Layers.
+>
+> An alternative, and often preferable, ranking metric is the DESeq2 Wald statistic (`DE_L4$stat`), because it directly incorporates both effect size and its uncertainty.
+
+### Obtain MSigDB C8 cell type signatures
+
+```r
+library(msigdbr)
+library(fgsea)
+
+genesets_celltype <- msigdbr(
+  species = "Homo sapiens",
+  collection = "C8"
+)
+```
+
+Convert the MSigDB table into a list of gene sets:
+
+```r
+genesets_celltype_list <- split(
+  genesets_celltype$ensembl_gene,
+  genesets_celltype$gs_name
+)
+```
+
+Remove missing or duplicated gene IDs:
+
+```r
+genesets_celltype_list <- lapply(
+  genesets_celltype_list,
+  function(x) {
+    unique(
+      x[
+        !is.na(x) &
+        x != ""
+      ]
+    )
+  }
+)
+```
+
+### Run GSEA using fgsea
+
+```r
+fgsea_C8_L4 <- fgsea(
+  pathways = genesets_celltype_list,
+  stats = scores_ordered,
+  minSize = 15,
+  maxSize = 500
+)
+```
+
+Here:
+
+- `pathways` contains the MSigDB C8 cell type signatures.
+- `stats` is the ranked gene list from the `L4` versus `Other` comparison.
+- `minSize = 15` excludes very small gene sets.
+- `maxSize = 500` excludes extremely broad gene sets.
+
+### Inspect positively enriched cell type signatures
+
+```r
+fgsea_C8_L4[
+  order(
+    fgsea_C8_L4$NES,
+    decreasing = TRUE
+  ),
+][
+  1:10,
+  1:7
+]
+```
+
+To display only statistically significant positively enriched signatures:
+
+```r
+fgsea_C8_L4 %>%
+  as.data.frame() %>%
+  filter(
+    padj < 0.05
+  ) %>%
+  arrange(
+    desc(NES)
+  ) %>%
+  select(
+    pathway,
+    pval,
+    padj,
+    ES,
+    NES,
+    size
+  ) %>%
+  head(10)
+```
+
+Positive `NES` values indicate gene sets enriched toward genes with higher expression in `L4`.
+
+### Inspect negatively enriched signatures
+
+```r
+fgsea_C8_L4[
+  order(
+    fgsea_C8_L4$NES,
+    decreasing = FALSE
+  ),
+][
+  1:10,
+  1:7
+]
+```
+
+Negative `NES` values indicate signatures enriched toward genes expressed more strongly in the `Other` Layers.
+
+### Visualize the top positively enriched signature
+
+Select the significant pathway with the highest normalized enrichment score:
+
+```r
+top_pathway <- fgsea_C8_L4 %>%
+  as.data.frame() %>%
+  filter(
+    padj < 0.05
+  ) %>%
+  arrange(
+    desc(NES)
+  ) %>%
+  slice(1) %>%
+  pull(pathway)
+
+top_pathway
+```
+
+Plot its enrichment profile:
+
+```r
+plotEnrichment(
+  genesets_celltype_list[
+    [top_pathway]
+  ],
+  scores_ordered
+) +
+  labs(
+    title = top_pathway
+  )
+```
+
+The enrichment curve shows where genes belonging to the selected cell type signature occur within the ranked `L4` versus `Other` gene list.
+<img width="1680" height="1800" alt="image" src="https://github.com/user-attachments/assets/ace96243-9e47-4703-a9b1-7e568f4d1584" />
+
+> **Interpretation note:** C8 enrichment indicates that the L4-associated transcriptional profile overlaps with a published cell type signature. It should not by itself be interpreted as direct evidence that the corresponding cell type is more abundant in L4, since bulk RNA-seq expression can reflect both cell composition and changes in gene expression within cells.
+
+### Visualize top positively and negatively enriched C8 signatures
+
+Select the most significantly enriched cell-type signatures in both directions.
+
+Positive NES values indicate enrichment toward genes more highly expressed in `L4`, whereas negative NES values indicate enrichment toward genes more highly expressed in the other cortical Layers.
+
+### Select top positively enriched signatures
+
+```r
+top_positive <- fgsea_C8_L4 %>%
+  as.data.frame() %>%
+  dplyr::filter(
+    padj < 0.05,
+    NES > 0
+  ) %>%
+  dplyr::arrange(
+    desc(NES)
+  ) %>%
+  dplyr::select(
+    pathway,
+    NES,
+    pval,
+    padj,
+    size
+  ) %>%
+  head(10)
+
+top_positive
+```
+
+### Select top negatively enriched signatures
+
+```r
+top_negative <- fgsea_C8_L4 %>%
+  as.data.frame() %>%
+  dplyr::filter(
+    padj < 0.05,
+    NES < 0
+  ) %>%
+  dplyr::arrange(
+    NES
+  ) %>%
+  dplyr::select(
+    pathway,
+    NES,
+    pval,
+    padj,
+    size
+  ) %>%
+  head(10)
+
+top_negative
+```
+
+### Combine positive and negative signatures
+
+Add a variable indicating the direction of enrichment:
+
+```r
+plot_gsea <- bind_rows(
+  top_positive %>%
+    mutate(
+      Direction = "Positive"
+    ),
+
+  top_negative %>%
+    mutate(
+      Direction = "Negative"
+    )
+)
+```
+
+Order the pathways according to their NES values:
+
+```r
+plot_gsea <- plot_gsea %>%
+  arrange(NES)
+
+plot_gsea$pathway <- factor(
+  plot_gsea$pathway,
+  levels = plot_gsea$pathway
+)
+
+plot_gsea
+```
+<img width="1200" height="960" alt="image" src="https://github.com/user-attachments/assets/df9ce316-23c2-4377-96a7-123bf9994d6b" />
+
+
+### Plot the top enriched cell-type signatures
+
+```r
+options(
+  repr.plot.width = 10,
+  repr.plot.height = 8
+)
+
+ggplot(
+  plot_gsea,
+  aes(
+    x = pathway,
+    y = NES,
+    fill = Direction
+  )
+) +
+
+  geom_col(
+    width = 0.75
+  ) +
+
+  coord_flip() +
+
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.5
+  ) +
+
+  scale_fill_manual(
+    values = c(
+      "Positive" = "#B2182B",
+      "Negative" = "#2166AC"
+    )
+  ) +
+
+  labs(
+    title = "MSigDB C8 cell-type signatures: L4 vs other layers",
+    x = NULL,
+    y = "Normalized Enrichment Score (NES)",
+    fill = NULL
+  ) +
+
+  theme_classic(
+    base_size = 12
+  ) +
+
+  theme(
+    axis.text.y = element_text(
+      size = 9
+    ),
+
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold"
+    ),
+
+    legend.position = "top"
+  )
+```
+<img width="1200" height="960" alt="image" src="https://github.com/user-attachments/assets/2fac7993-5a96-4a45-9dbe-784425f40223" />
+
+- **Positive NES** → enrichment toward the `L4` side of the ranked gene list.
+- **Negative NES** → enrichment toward the `Other` Layers side.
+- Larger absolute NES values indicate stronger normalized enrichment.
+
+> **Interpretation note:** Enrichment of an MSigDB C8 signature indicates similarity between the bulk RNA-seq transcriptional profile and a previously defined cell-type signature. It does not directly demonstrate a change in cell abundance.
 
