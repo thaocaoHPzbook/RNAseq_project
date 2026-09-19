@@ -1673,3 +1673,133 @@ p1 + p2
 Samples with more similar transcriptomic profiles cluster closer together in the dendrogram. The clustering can later be compared with sample metadata such as `Individual`, `Age`, and `Layer`.
 <img width="1680" height="720" alt="image" src="https://github.com/user-attachments/assets/65367bb3-1ef0-48f3-a9ac-ca3921d623f0" />
 
+
+### Hierarchical clustering with sample metadata
+
+The Pearson- and Spearman-based dendrograms show similar clustering patterns. However, using only SRR accession numbers makes biological interpretation difficult.
+
+Therefore, the sample labels can be replaced with metadata variables such as **Individual** and **Layer**. Here, we focus on the **Spearman correlation-based clustering**.
+
+```r
+library(ggplot2)
+library(ggdendro)
+library(patchwork)
+
+# Ensure metadata follows the same sample order as the expression matrix
+stopifnot(
+  identical(
+    colnames(expr),
+    meta$Run
+  )
+)
+
+plot_dendro_label <- function(
+  hcl,
+  meta,
+  label_var,
+  title,
+  color
+) {
+
+  dend <- ggdendro::dendro_data(hcl)
+
+  labels_df <- dend$labels
+
+  labels_df$display_label <- meta[[label_var]][
+    match(
+      labels_df$label,
+      meta$Run
+    )
+  ]
+
+  ggplot() +
+
+    geom_segment(
+      data = dend$segments,
+      aes(
+        x = x,
+        y = y,
+        xend = xend,
+        yend = yend
+      ),
+      color = color,
+      linewidth = 0.7
+    ) +
+
+    geom_text(
+      data = labels_df,
+      aes(
+        x = x,
+        y = y,
+        label = display_label
+      ),
+      angle = 60,
+      hjust = 1,
+      size = 3.5
+    ) +
+
+    labs(
+      title = title,
+      x = NULL,
+      y = "1 − Spearman correlation"
+    ) +
+
+    scale_y_continuous(
+      expand = expansion(
+        mult = c(0.18, 0.05)
+      )
+    ) +
+
+    theme_minimal(base_size = 12) +
+
+    theme(
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = 14
+      ),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      panel.grid = element_blank(),
+      axis.title.y = element_text(
+        face = "bold"
+      ),
+      plot.margin = margin(
+        10,
+        15,
+        35,
+        15
+      )
+    )
+}
+```
+
+Visualize clustering according to **Individual** and **Layer**:
+
+```r
+p_individual <- plot_dendro_label(
+  hcl_spearman,
+  meta,
+  "Individual",
+  "Clustering by Individual",
+  "#92BFB1"
+)
+
+p_layer <- plot_dendro_label(
+  hcl_spearman,
+  meta,
+  "Layer",
+  "Clustering by Layer",
+  "#C6A6C9"
+)
+
+options(
+  repr.plot.width = 14,
+  repr.plot.height = 6
+)
+
+p_individual + p_layer
+```
+
+These plots help determine whether the major transcriptomic similarities among samples are associated with **individual differences** or **cortical layer**.
+
