@@ -4351,5 +4351,116 @@ round(
 
 The resulting `gene_clusters_entrez` and `universe_entrez` objects can then be used for downstream **GO enrichment analysis**.
 
+#### Gene Ontology enrichment analysis
+
+The **Gene Ontology (GO)** provides standardized functional annotations for genes and gene products. GO annotations are organized into three major domains:
+
+- **Biological Process (BP):** biological programs or processes involving multiple molecular activities.
+- **Molecular Function (MF):** molecular-level activities of gene products, such as binding or catalytic activity.
+- **Cellular Component (CC):** cellular structures or locations where gene products function.
+
+Here, GO enrichment analysis is performed separately for each hierarchical DEG cluster to identify biological processes that are over-represented in each expression pattern.
+
+### GO Biological Process enrichment
+
+The `compareCluster()` function from `clusterProfiler` allows enrichment analysis to be performed simultaneously for all DEG clusters.
+
+```r
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(enrichplot)
+```
+
+Run GO enrichment using the **Biological Process (BP)** ontology:
+
+```r
+go_bp <- compareCluster(
+  geneClusters = gene_clusters_entrez,
+  fun = "enrichGO",
+
+  OrgDb = org.Hs.eg.db,
+  keyType = "ENTREZID",
+
+  ont = "BP",
+
+  universe = universe_entrez,
+
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05,
+
+  minGSSize = 10,
+  maxGSSize = 500
+)
+```
+
+The main parameters are:
+
+- `geneClusters` – Entrez gene lists from the hierarchical DEG clusters.
+- `ont = "BP"` – performs enrichment for GO Biological Process terms.
+- `universe` – background genes that were tested in the differential expression analysis.
+- `pAdjustMethod = "BH"` – controls the false discovery rate using the Benjamini-Hochberg method.
+- `pvalueCutoff` and `qvalueCutoff` – significance thresholds for enrichment.
+- `minGSSize` and `maxGSSize` – restrict the analysis to GO terms containing a reasonable number of annotated genes.
+
+### Inspect enrichment results
+
+Convert the enrichment result to a data frame:
+
+```r
+go_df <- as.data.frame(
+  go_bp
+)
+
+head(go_df)
+```
+
+The resulting table contains information such as:
+
+```text
+Cluster
+ID
+Description
+GeneRatio
+BgRatio
+pvalue
+p.adjust
+qvalue
+geneID
+Count
+```
+
+Each row represents a GO term enriched within one DEG cluster.
+
+### Visualize GO enrichment
+
+```r
+options(
+  repr.plot.width = 14,
+  repr.plot.height = 15
+)
+
+dotplot(
+  go_bp,
+  showCategory = 5
+) +
+  ggtitle(
+    "GO Biological Process enrichment"
+  )
+```
+<img width="1680" height="1800" alt="image" src="https://github.com/user-attachments/assets/8fa6426e-5513-4e8c-96a3-4a13487ecba5" />
+
+The dot plot displays the most enriched GO Biological Process terms for each DEG cluster.
+
+Generally:
+
+- the **x-axis** represents the proportion of genes associated with a GO term;
+- the **dot size** represents the number of genes contributing to the enrichment;
+- the **dot color** represents enrichment significance.
+
+This allows the expression pattern of each DEG cluster to be connected with its potential biological functions.
+
+> **Note:** The same approach can also be applied to the other GO domains by changing `ont = "BP"` to `ont = "MF"` for Molecular Function or `ont = "CC"` for Cellular Component.
+
 
 
