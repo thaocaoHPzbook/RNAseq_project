@@ -116,6 +116,7 @@ The final compressed FASTQ files will be stored in **rawdata/** folder.
 
 # 2. Preprocessing of RNA-seq data
 ## 2.1. Quality control of RNA-seq data
+
 [(Back to top)](#top)
 Before processing the RNA-seq data, the quality of the raw FASTQ files should be assessed.
 
@@ -253,8 +254,8 @@ For this workflow, no deduplication step is performed unless a specific technica
 
 ## 2.2. Read mapping/pseudomapping and quantification
 [(Back to top)](#top)
-### 2.2.1. Read mapping with STAR and data quantification
-(Back to top)
+
+### 2.2.1. Read mapping with STAR and data quantification    
 Once the quality of the data is confirmed, we need to convert those millions of reads per sample into the gene- or transcript-level quantification. This would need the assignment of reads to genes or transcripts. To do this, the mostly common first step is for each read, to look for the genomic region that match with the read, given the complete genomic sequences. The identified region is then most likely the region being transcribed and generate the sequenced read in the end. This step of looking for the matched genomic regions for reads is called read genome mapping or alignment.
 
 There are different tools, or aligners, that have been developed for this purpose. The most famous examples include Tophat/Tophat2/HISAT2 and STAR. As the commonly used modern aligners, HISAT2 and STAR shares quite some features, such as their high-efficiency, and their support of soft-trimming for low-quality bases at the ends of reads. They also have their own adventage and disadventage. HISAT2 uses fewer computational resource than STAR (particularly memory) and has better support for SNPs (single-nucleotide polymorphism) that in the same locus on the genome different individuals can have different nucleotides. On the other hand, STAR is suggested to provide more accurate alignment results. It also supports varied ways for the next step to quantify transcript abundance. In this tutorial, we will use STAR to map the FASTQ files we retreived from SRA to the human genome.
