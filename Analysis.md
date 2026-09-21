@@ -234,10 +234,10 @@ qc/trimmed_multiqc/multiqc_report.html
 ```
 
 Compare this report with the initial raw-read QC report to verify the improvement in **Adapter Content** and **Per base sequence quality** before proceeding to read mapping.
-<img width="1823" height="1094" alt="image" src="https://github.com/user-attachments/assets/2a6f1fdf-e34a-4d55-9659-e190d59cec25" />
+<img width="1600" height="800" alt="fastqc_adapter_content_plot" src="https://github.com/user-attachments/assets/76851fea-d02d-4ba4-b20e-32cc1fe0f2e9" />
 
 
-## Read duplication and deduplication
+## Optional: Read duplication and deduplication
 [(Back to top)](#top)
 
 High sequence duplication can be observed in RNA-seq data because transcripts are expressed at very different abundance levels. Highly expressed genes may naturally generate many identical or near-identical reads.
