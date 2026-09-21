@@ -149,7 +149,7 @@ multiqc qc/fastqc \
 At this stage, the main QC metrics to inspect are:
 
 - **Per-base sequence quality / quality score**
-<img width="1881" height="1125" alt="image" src="https://github.com/user-attachments/assets/e7ee5b98-0f5b-4b18-8132-1378bef207f6" />
+<img width="1600" height="800" alt="fastqc_per_base_sequence_quality_plot" src="https://github.com/user-attachments/assets/e0644d79-7192-4f9a-87e6-790ff0872957" />
 
 - **Adapter content**
 <img width="1912" height="883" alt="image" src="https://github.com/user-attachments/assets/157b74ad-9fc8-4ae6-a767-9b3662300ff2" />
