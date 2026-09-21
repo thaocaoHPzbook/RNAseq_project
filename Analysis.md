@@ -152,9 +152,11 @@ At this stage, the main QC metrics to inspect are:
 <img width="1600" height="800" alt="fastqc_per_base_sequence_quality_plot" src="https://github.com/user-attachments/assets/e0644d79-7192-4f9a-87e6-790ff0872957" />
 
 - **Adapter content**
-<img width="1912" height="883" alt="image" src="https://github.com/user-attachments/assets/157b74ad-9fc8-4ae6-a767-9b3662300ff2" />
+<img width="1600" height="800" alt="fastqc_adapter_content_plot" src="https://github.com/user-attachments/assets/29aac50f-a698-4faf-b4ae-107d508be544" />
+
 - **GC content**
-<img width="1891" height="1112" alt="image" src="https://github.com/user-attachments/assets/772a06e6-634c-4bfa-ab15-dd00e24fc88b" />
+<img width="1600" height="800" alt="fastqc_per_sequence_gc_content_plot" src="https://github.com/user-attachments/assets/3f9cfc05-9fa8-4598-922c-63561322d269" />
+
 
 Other QC metrics can also be examined in more detail in the MultiQC report **qc/multiqc/multiqc_report.html**
 
